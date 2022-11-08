@@ -6,6 +6,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UAS IIR</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
+
     <style>
         table,
         th,
@@ -17,12 +20,12 @@
 
 <body>
     <form action="indexrumah.php" method="POST">
-        <input type="text" name="keyword"><br>
-        <input type="radio" name="sumber" value="okezone" checked> Okezone
-        <input type="radio" name="sumber" value="sindonews"> Sindonews
-        <input type="submit" name="search" value="Cari">
+        <input type="text" name="keyword" id="keyword"><br>
+        <input type="radio" name="sumber" value="okezone" id="okezone" checked> Okezone
+        <input type="radio" name="sumber" value="sindonews" id="sindonews"> Sindonews
+        <input type="submit" name="search" value="Cari" id="search">
     </form>
-    <table>
+    <table id="result">
         <!-- Title, Date, Category, LINK (ini tambahan) -->
 
         <tr>
@@ -34,6 +37,7 @@
         </tr>
 
         <?php
+        header("Access-Control-Allow-Origin: *");
         include_once('simple_html_dom.php');
         require_once __DIR__ . '/vendor/autoload.php';
 
@@ -58,138 +62,137 @@
             // Preprocess keyword
             $keyword = $_POST['keyword'];
             $query_keyword = str_replace(" ", "+", $keyword);
-            
+
             // Cek radio buttonnya
-            $url = 'https://search.okezone.com//?q=' . $query_keyword;
-            // $url = "https://www.cnnindonesia.com/search/?query=". $query_keyword;
-            // $url = "https://www.detik.com/search/searchall?query=". $query_keyword. "&siteid=2";
             if ($_POST['sumber'] == "sindonews") {
-                $url = 'https://search.sindonews.com/go?type=artikel&q='.$query_keyword;
-            }
-            
-            //CRAWLING PROSES
-            $sample_data = array();
-            // $html = file_get_html($url);
-            $result = extract_html($url);
-            $html = new simple_html_dom();
-            $html->load($result['message']);
-            $id = 0;
-            echo $html;
-            //OKEZONE
-            if ($_POST['sumber'] == "okezone") {
-                // foreach ($html->find('article') as $news) {
+                $url = 'https://search.sindonews.com/go?type=artikel&q=' . $query_keyword;
+                $result = extract_html($url);
 
-                //     $title = $news->find('h2[class="title"]', 0)->innertext;
-                //     // wajib ada tanda ^ karena fungsinya untuk memberikan indikasi attribut yang dicari berawalan ...
-                //     $category = $news->find('span[class="kanal"]', 0)->innertext;
-                //     $date = $news->find('span[class="date"]', 0)->innertext;
-                //     $link = $news->find('a', 0)->href;
-                //     // $summary = $news->find('div[class="news-summary"]')->innertext;
+                if ($result['code'] == '200') {
+                    //CRAWLING PROSES
+                    $sample_data = array();
+                    // $html = file_get_html($url);
+                    $html = new simple_html_dom();
+                    $html->load($result['message']);
+                    $id = 0;
 
-                //     array_push($sample_data, $title);
+                    foreach ($html->find('div[class="news-content"]') as $news) {
 
-                //     // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                //     // $stemmer = $stemmerFactory->createStemmer();
-                //     // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                //     // $stopword = $stopwordFactory->createStopWordRemover();
+                        $title = $news->find('a', 0)->innertext;
+                        // wajib ada tanda ^ karena fungsinya untuk memberikan indikasi attribut yang dicari berawalan ...
+                        $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
+                        $date = $news->find('div[class="news-date"]', 0)->innertext;
+                        $link = $news->find('a', 0)->href;
+                        // $summary = $news->find('div[class="news-summary"]')->innertext;
 
-                //     // $stemedTitle = $stemmer->stem($newsTitle);
-                //     // $stopwordedTitle = $stopword->remove($stemedTitle);
+                        array_push($sample_data, $title);
 
-                //     echo ("<tr>");
-                //     echo ("<td>$id</td>");
-                //     echo ("<td>$title</td>");
-                //     echo ("<td>$category</td>");
-                //     echo ("<td>$date</td>");
-                //     echo ("<td><a href='$link'>Read More...</a></td>");
-                //     echo ("</tr>");
+                        // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+                        // $stemmer = $stemmerFactory->createStemmer();
+                        // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+                        // $stopword = $stopwordFactory->createStopWordRemover();
 
-                //     //INSERT DATABASE
-                //     // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
-                //     // $statement = $con->prepare($sql);
-                //     // $similarity = 0.0;
-                //     // $statement->bind_param('ssd', $title, $link, $similarity);
-                //     // Jalankan statementnya
-                //     // $statement->execute();
-                //     $id += 1;
+                        // $stemedTitle = $stemmer->stem($newsTitle);
+                        // $stopwordedTitle = $stopword->remove($stemedTitle);
+
+                        echo ("<tr>");
+                        echo ("<td>$id</td>");
+                        echo ("<td>$title</td>");
+                        echo ("<td>$category</td>");
+                        echo ("<td>$date</td>");
+                        echo ("<td><a href='$link'>Read More...</a></td>");
+                        echo ("</tr>");
+
+                        //INSERT DATABASE
+                        // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
+                        // $statement = $con->prepare($sql);
+                        // $similarity = 0.0;
+                        // $statement->bind_param('ssd', $title, $link, $similarity);
+                        // Jalankan statementnya
+                        // $statement->execute();
+                        $id += 1;
+                    }
+
+                    // $con->close();
+                }
+            } else {
+                //OKEZONE
+                // $client = new Client();
+                // try {
+                //     $url = "https://search.okezone.com//?q=". $query_keyword;
+                //     $crawler = $client->request("GET", $url);
+                //     // $crawler->filter(".listnews")->each(function ($node) {
+                //     //     $title = $node->filter('.title > a')->text();
+                //     //     // $category = $node->filter('div[class^="kanal"]')->text();
+                //     //     echo $title;
+                //     //     // echo $category;
+                //     // });
+                //     echo $crawler->html();
+                // } catch ( \Symfony\Component\HttpClient\Exception\TransportException | \Exception | \Throwable $exception ) {
+                //     die( $exception->getMessage() );
                 // }
 
-                foreach ($html->find('div[class="listnews"]') as $news) {
-                    $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
-                    $category = $news->find('div[class^="kanal"]', 0)->innertext;
-                    $date = $news->find('div[class="tgl"]', 0)->innertext;
-                    $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
-                    // $summary = $news->find('div[class="desc"]')->innertext;
+                // $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
+                // $category = $news->find('div[class^="kanal"]', 0)->innertext;
+                // $date = $news->find('div[class="tgl"]', 0)->innertext;
+                // $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
+                // $summary = $news->find('div[class="desc"]')->innertext;
 
-                    array_push($sample_data, $title);
+                // Preprocess keyword
+                $keyword = $_POST['keyword'];
+                $query_keyword = str_replace(" ", "%20", $keyword);
 
-                    // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                    // $stemmer = $stemmerFactory->createStemmer();
-                    // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                    // $stopword = $stopwordFactory->createStopWordRemover();
+                $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
+                //https://search.okezone.com/searchsphinx/loaddata/article/hacker%20bjorka/0
+                $result = extract_html($url);
 
-                    // $stemedTitle = $stemmer->stem($newsTitle);
-                    // $stopwordedTitle = $stopword->remove($stemedTitle);
+                if ($result['code'] == '200') {
+                    //CRAWLING PROSES
+                    $sample_data = array();
+                    // $html = file_get_html($url);
+                    $html = new simple_html_dom();
+                    $html->load($result['message']);
+                    $id = 0;
+                    
+                    foreach ($html->find('div[class="listnews"]') as $news) {
+                        $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
+                        $category = $news->find('div[class^="kanal"]', 0)->innertext;
+                        $date = $news->find('div[class="tgl"]', 0)->innertext;
+                        $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
+                        $summary = $news->find('div[class="desc"]',0)->innertext;
 
-                    echo ("<tr>");
-                    echo ("<td>$id</td>");
-                    echo ("<td>$title</td>");
-                    echo ("<td>$category</td>");
-                    echo ("<td>$date</td>");
-                    echo ("<td><a href='$link'>Read More...</a></td>");
-                    echo ("</tr>");
+                        array_push($sample_data, $title);
 
-                    //INSERT DATABASE
-                    // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
-                    // $statement = $con->prepare($sql);
-                    // $similarity = 0.0;
-                    // $statement->bind_param('ssd', $title, $link, $similarity);
-                    // Jalankan statementnya
-                    // $statement->execute();
-                    $id += 1;
-                }
-                //SINDONEWS
-            } else {
-                foreach ($html->find('div[class="news-content"]') as $news) {
+                        // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+                        // $stemmer = $stemmerFactory->createStemmer();
+                        // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+                        // $stopword = $stopwordFactory->createStopWordRemover();
 
-                    $title = $news->find('a', 0)->innertext;
-                    // wajib ada tanda ^ karena fungsinya untuk memberikan indikasi attribut yang dicari berawalan ...
-                    $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
-                    $date = $news->find('div[class="news-date"]', 0)->innertext;
-                    $link = $news->find('a', 0)->href;
-                    // $summary = $news->find('div[class="news-summary"]')->innertext;
+                        // $stemedTitle = $stemmer->stem($newsTitle);
+                        // $stopwordedTitle = $stopword->remove($stemedTitle);
 
-                    array_push($sample_data, $title);
+                        echo ("<tr>");
+                        echo ("<td>$id</td>");
+                        echo ("<td>$title</td>");
+                        echo ("<td>$category</td>");
+                        echo ("<td>$date</td>");
+                        echo ("<td><a href='$link'>Read More...</a></td>");
+                        echo ("</tr>");
 
-                    // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                    // $stemmer = $stemmerFactory->createStemmer();
-                    // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                    // $stopword = $stopwordFactory->createStopWordRemover();
+                        //INSERT DATABASE
+                        // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
+                        // $statement = $con->prepare($sql);
+                        // $similarity = 0.0;
+                        // $statement->bind_param('ssd', $title, $link, $similarity);
+                        // Jalankan statementnya
+                        // $statement->execute();
+                        $id += 1;
+                    }
 
-                    // $stemedTitle = $stemmer->stem($newsTitle);
-                    // $stopwordedTitle = $stopword->remove($stemedTitle);
-
-                    echo ("<tr>");
-                    echo ("<td>$id</td>");
-                    echo ("<td>$title</td>");
-                    echo ("<td>$category</td>");
-                    echo ("<td>$date</td>");
-                    echo ("<td><a href='$link'>Read More...</a></td>");
-                    echo ("</tr>");
-
-                    //INSERT DATABASE
-                    // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
-                    // $statement = $con->prepare($sql);
-                    // $similarity = 0.0;
-                    // $statement->bind_param('ssd', $title, $link, $similarity);
-                    // Jalankan statementnya
-                    // $statement->execute();
-                    $id += 1;
+                    // $con->close();
                 }
             }
-            // $con->close();
         }
-
 
         ?>
     </table>
@@ -237,8 +240,9 @@
     <a href="search.php">Search</a>
 </body>
 
+
 </html>
-<?php 
+<?php
 function extract_html($url)
 {
 
@@ -262,6 +266,7 @@ function extract_html($url)
 
     $curl = curl_init();
 
+
     curl_setopt($curl, CURLOPT_HEADER, false);
 
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
@@ -279,6 +284,8 @@ function extract_html($url)
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
     curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
 
     // allow to crawl https webpages
 
