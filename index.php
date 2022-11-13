@@ -19,7 +19,7 @@
 </head>
 
 <body>
-    <form action="indexrumah.php" method="POST">
+    <form action="index.php" method="POST">
         <input type="text" name="keyword" id="keyword"><br>
         <input type="radio" name="sumber" value="okezone" id="okezone" checked> Okezone
         <input type="radio" name="sumber" value="sindonews" id="sindonews"> Sindonews
@@ -41,6 +41,7 @@
         include_once('simple_html_dom.php');
         include_once('extract_html.php');
         require_once __DIR__ . '/vendor/autoload.php';
+        $proxy = 'proxy3.ubaya.ac.id:8080';
 
         use Phpml\Clustering\KMeans;
         use Phpml\FeatureExtraction\TokenCountVectorizer;
@@ -143,6 +144,7 @@
                 $keyword = $_POST['keyword'];
                 $query_keyword = str_replace(" ", "%20", $keyword);
 
+                // contoh linknya https://search.okezone.com//?q=coba
                 $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
                 //https://search.okezone.com/searchsphinx/loaddata/article/hacker%20bjorka/0
                 $result = extract_html($url, $proxy);

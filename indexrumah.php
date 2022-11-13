@@ -266,7 +266,6 @@ function extract_html($url)
 
     $curl = curl_init();
 
-
     curl_setopt($curl, CURLOPT_HEADER, false);
 
     curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
