@@ -33,7 +33,9 @@
             <th>Title</th>
             <th>Category</th>
             <th>Date</th>
+            <th>Summary</th>
             <th>Link</th>
+            <th>Prediction</th>
         </tr>
 
         <?php
@@ -43,7 +45,7 @@
         require_once __DIR__ . '/vendor/autoload.php';
         $proxy = 'proxy3.ubaya.ac.id:8080';
 
-        use Phpml\Clustering\KMeans;
+        use Phpml\Classification\NaiveBayes;
         use Phpml\FeatureExtraction\TokenCountVectorizer;
         use Phpml\Tokenization\WhitespaceTokenizer;
         use Phpml\FeatureExtraction\TfIdfTransformer;
@@ -54,12 +56,12 @@
         if (isset($_POST['search']) && !empty($_POST['keyword'])) {
 
             // DATABASE
-            // $con = new mysqli("localhost", "root", "", "news");
-            // // Lakukan pengecekan apakah terjadi koneksi yang error?
-            // if ($con->connect_errno) { // Kalau ada koneksi yang error
-            //     // Melakukan echo terus memberhentikan proses
-            //     die("Failed to connect to MYSQL:" . $con->connect_errno);
-            // }
+            $con = new mysqli("localhost", "root", "", "uas_iir");
+            // Lakukan pengecekan apakah terjadi koneksi yang error?
+            if ($con->connect_errno) { // Kalau ada koneksi yang error
+                // Melakukan echo terus memberhentikan proses
+                die("Failed to connect to MYSQL:" . $con->connect_errno);
+            }
 
             // Preprocess keyword
             $keyword = $_POST['keyword'];
@@ -76,7 +78,7 @@
                     // $html = file_get_html($url);
                     $html = new simple_html_dom();
                     $html->load($result['message']);
-                    $id = 0;
+                    $id = 1;
 
                     foreach ($html->find('div[class="news-content"]') as $news) {
 
@@ -85,61 +87,30 @@
                         $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
                         $date = $news->find('div[class="news-date"]', 0)->innertext;
                         $link = $news->find('a', 0)->href;
-                        // $summary = $news->find('div[class="news-summary"]')->innertext;
+                        $summary = $news->find('div[class="news-summary"]', 0)->innertext;
 
                         array_push($sample_data, $title);
 
-                        // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                        // $stemmer = $stemmerFactory->createStemmer();
-                        // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                        // $stopword = $stopwordFactory->createStopWordRemover();
+                        $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+                        $stemmer = $stemmerFactory->createStemmer();
+                        $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+                        $stopword = $stopwordFactory->createStopWordRemover();
 
-                        // $stemedTitle = $stemmer->stem($newsTitle);
-                        // $stopwordedTitle = $stopword->remove($stemedTitle);
-
-                        echo ("<tr>");
-                        echo ("<td>$id</td>");
-                        echo ("<td>$title</td>");
-                        echo ("<td>$category</td>");
-                        echo ("<td>$date</td>");
-                        echo ("<td><a href='$link'>Read More...</a></td>");
-                        echo ("</tr>");
+                        $stemedTitle = $stemmer->stem($title);
+                        $stopwordedTitle = $stopword->remove($stemedTitle);
 
                         //INSERT DATABASE
-                        // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
+                        // $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
                         // $statement = $con->prepare($sql);
-                        // $similarity = 0.0;
-                        // $statement->bind_param('ssd', $title, $link, $similarity);
-                        // Jalankan statementnya
+                        // $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
+                        // // Jalankan statementnya
                         // $statement->execute();
-                        $id += 1;
                     }
 
                     // $con->close();
                 }
             } else {
                 //OKEZONE
-                // $client = new Client();
-                // try {
-                //     $url = "https://search.okezone.com//?q=". $query_keyword;
-                //     $crawler = $client->request("GET", $url);
-                //     // $crawler->filter(".listnews")->each(function ($node) {
-                //     //     $title = $node->filter('.title > a')->text();
-                //     //     // $category = $node->filter('div[class^="kanal"]')->text();
-                //     //     echo $title;
-                //     //     // echo $category;
-                //     // });
-                //     echo $crawler->html();
-                // } catch ( \Symfony\Component\HttpClient\Exception\TransportException | \Exception | \Throwable $exception ) {
-                //     die( $exception->getMessage() );
-                // }
-
-                // $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
-                // $category = $news->find('div[class^="kanal"]', 0)->innertext;
-                // $date = $news->find('div[class="tgl"]', 0)->innertext;
-                // $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
-                // $summary = $news->find('div[class="desc"]')->innertext;
-
                 // Preprocess keyword
                 $keyword = $_POST['keyword'];
                 $query_keyword = str_replace(" ", "%20", $keyword);
@@ -155,91 +126,102 @@
                     // $html = file_get_html($url);
                     $html = new simple_html_dom();
                     $html->load($result['message']);
-                    $id = 0;
-                    
+                    $id = 1;
+
                     foreach ($html->find('div[class="listnews"]') as $news) {
                         $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
                         $category = $news->find('div[class^="kanal"]', 0)->innertext;
                         $date = $news->find('div[class="tgl"]', 0)->innertext;
                         $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
-                        $summary = $news->find('div[class="desc"]',0)->innertext;
+                        $summary = $news->find('div[class="desc"]', 0)->innertext;
 
                         array_push($sample_data, $title);
 
-                        // $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                        // $stemmer = $stemmerFactory->createStemmer();
-                        // $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                        // $stopword = $stopwordFactory->createStopWordRemover();
+                        $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+                        $stemmer = $stemmerFactory->createStemmer();
+                        $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+                        $stopword = $stopwordFactory->createStopWordRemover();
 
-                        // $stemedTitle = $stemmer->stem($newsTitle);
-                        // $stopwordedTitle = $stopword->remove($stemedTitle);
-
-                        echo ("<tr>");
-                        echo ("<td>$id</td>");
-                        echo ("<td>$title</td>");
-                        echo ("<td>$category</td>");
-                        echo ("<td>$date</td>");
-                        echo ("<td><a href='$link'>Read More...</a></td>");
-                        echo ("</tr>");
+                        $stemedTitle = $stemmer->stem($title);
+                        $stopwordedTitle = $stopword->remove($stemedTitle);
 
                         //INSERT DATABASE
-                        // $sql = "INSERT INTO contents (title, link, similarity) VALUES (?,?,?)";
-                        // $statement = $con->prepare($sql);
-                        // $similarity = 0.0;
-                        // $statement->bind_param('ssd', $title, $link, $similarity);
+                        $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
+                        $statement = $con->prepare($sql);
+                        $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
                         // Jalankan statementnya
-                        // $statement->execute();
-                        $id += 1;
+                        $statement->execute();
                     }
 
                     // $con->close();
                 }
             }
+
+            $arrayTitle = [];
+            $arrayCategory = [];
+            $arrayDate = [];
+            $arraySummary = [];
+            $arrayLink = [];
+            $arrayHasil = [];
+
+            $sql = "SELECT * FROM news";
+            $statement = $con->prepare($sql);
+            $statement->execute();
+            $result = $statement->get_result();
+            while ($row = $result->fetch_assoc()) {
+                array_push($arrayTitle, $row['title']);
+                array_push($arrayCategory, $row['category']);
+                array_push($arrayDate, $row['date']);
+                array_push($arrayLink, $row['link']);
+                array_push($arraySummary, $row['summary']);
+            }
+
+            for ($i = 0; $i < count($arrayTitle); $i++) {
+                $arraySample = $arrayTitle;
+                $arrayPredict = [];
+                $selected_judul = $arrayTitle[$i];
+                array_push($arraySample, $arrayTitle[$i]);
+
+                $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
+                $tf->fit($arraySample);
+                $tf->transform($arraySample);
+                $vocabulary = $tf->getVocabulary();
+
+                $tfidf = new TfIdfTransformer($arraySample);
+                $tfidf->transform($arraySample);
+
+                $panjang = count($arraySample);
+                array_push($arrayPredict, $arraySample[$panjang - 1]);
+                array_pop($arraySample);
+
+                $id = $i + 1;
+                $category = $arrayCategory[$i];
+                $date = $arrayDate[$i];
+                $summary = $arraySummary[$i];
+                $link = $arrayLink[$i];
+
+
+                $classifier = new NaiveBayes();
+                $classifier->train($arraySample, $arrayCategory);
+                $result = $classifier->predict($arrayPredict);
+
+                array_push($arrayHasil, $result[0]);
+
+                echo ("<tr>");
+                echo ("<td>$id</td>");
+                echo ("<td>$selected_judul</td>");
+                echo ("<td>$category</td>");
+                echo ("<td>$date</td>");
+                echo ("<td>$summary</td>");
+                echo ("<td><a href='$link'>Read More...</a></td>");
+                echo ("<td>".$result[0]."</td>");
+                echo ("</tr>");
+            }
         }
 
         ?>
     </table>
-
-    <?php
-    // $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
-    // $tf->fit($sample_data);
-    // $tf->transform($sample_data);
-    // $vocabulary = $tf->getVocabulary();
-
-    // $tfidf = new TfIdfTransformer($sample_data);
-    // $tfidf->transform($sample_data);
-
-    // //angka 3 diganti input nanti
-    // $kmeans = new KMeans(10);
-    // $result = $kmeans->cluster($sample_data);
-
-    // echo "<br><br><b><u>Clustering Result</u></b><br><br>";
-    // echo "<table border='1'>";
-    // foreach ($result as $cluster => $doc) {
-    //     $join = array();
-    //     foreach ($doc as $key => $value) {
-    //         array_push($join, $sample_data[$key]);
-    //     }
-    //     $b = 0;
-    //     foreach ($join as $val) {
-    //         foreach ($val as $key => $val1) {
-    //             if ($val1 > $b) {
-    //                 $b = $val1;
-    //                 $idx = $key;
-    //             }
-    //         }
-    //     }
-
-    //     echo "<tr>";
-    //     echo "<th>Cluster " . $vocabulary[$idx] . "</th>";
-    //     foreach ($doc as $key => $value) {
-    //         echo "<td>News-" . $key . "</td>";
-    //     }
-    //     echo "</tr>";
-    // }
-    // echo "</table>";
-    ?>
-
     <a href="search.php">Search</a>
 </body>
+
 </html>
