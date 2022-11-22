@@ -112,31 +112,9 @@
                         // $statement->execute();
                         $id += 1;
                     }
-
-                    // $con->close();
                 }
             } else {
                 //OKEZONE
-                // $client = new Client();
-                // try {
-                //     $url = "https://search.okezone.com//?q=". $query_keyword;
-                //     $crawler = $client->request("GET", $url);
-                //     // $crawler->filter(".listnews")->each(function ($node) {
-                //     //     $title = $node->filter('.title > a')->text();
-                //     //     // $category = $node->filter('div[class^="kanal"]')->text();
-                //     //     echo $title;
-                //     //     // echo $category;
-                //     // });
-                //     echo $crawler->html();
-                // } catch ( \Symfony\Component\HttpClient\Exception\TransportException | \Exception | \Throwable $exception ) {
-                //     die( $exception->getMessage() );
-                // }
-
-                // $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
-                // $category = $news->find('div[class^="kanal"]', 0)->innertext;
-                // $date = $news->find('div[class="tgl"]', 0)->innertext;
-                // $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
-                // $summary = $news->find('div[class="desc"]')->innertext;
 
                 // Preprocess keyword
                 $keyword = $_POST['keyword'];
@@ -188,8 +166,6 @@
                         // $statement->execute();
                         $id += 1;
                     }
-
-                    // $con->close();
                 }
             }
         }
