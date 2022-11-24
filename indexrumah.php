@@ -32,6 +32,7 @@
             <div class="col">
                 <form action="index.php" method="POST">
                     <div class="row d-flex justify-content-flex-start">
+                        <p class="mb-2">Input Keyword:</p>
                         <div class="col-8">
                             <div class="row">
                                 <div class="col">
