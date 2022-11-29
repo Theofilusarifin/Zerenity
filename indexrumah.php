@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UAS IIR</title>
+    <title>Search News</title>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://requirejs.org/docs/release/2.3.5/minified/require.js"></script>
     <!-- Bootstrap -->
@@ -25,12 +25,12 @@
     <div class="container">
         <div class="row my-4">
             <div class="col">
-                <h2>Project IIR</h2>
+                <h2>Crawling Data From Okezone and Sindonews</h2>
             </div>
         </div>
         <div class="row my-4">
             <div class="col">
-                <form action="index.php" method="POST">
+                <form action="indexrumah.php" method="POST">
                     <div class="row d-flex justify-content-flex-start">
                         <p class="mb-2">Input Keyword:</p>
                         <div class="col-8">
@@ -50,6 +50,12 @@
                             <input type="radio" name="sumber" value="sindonews" id="sindonews"> Sindonews
                         </div>
                     </div>
+                    <div class="row mt-3">
+                        <div class="col-3">
+                            <input type="radio" name="metode" value="euclidean" id="euclidean" checked> Euclidean
+                            <input type="radio" name="metode" value="chebyshev" id="chebyshev"> Chebyshev
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -65,12 +71,10 @@
                             <th class="text-center">Date</th>
                             <th class="text-center">Summary</th>
                             <th class="text-center">Link</th>
-                            <th class="text-center">Prediction</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
-                        header("Access-Control-Allow-Origin: *");
                         include_once('simple_html_dom.php');
                         require_once __DIR__ . '/vendor/autoload.php';
 
@@ -117,8 +121,7 @@
                                         $link = $news->find('a', 0)->href;
                                         $summary = $news->find('div[class="news-summary"]', 0)->innertext;
 
-                                        array_push($sample_data, $title);
-
+                                        //Preprocessing
                                         $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
                                         $stemmer = $stemmerFactory->createStemmer();
                                         $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
@@ -127,13 +130,23 @@
                                         $stemedTitle = $stemmer->stem($title);
                                         $stopwordedTitle = $stopword->remove($stemedTitle);
 
-                                        //INSERT DATABASE
+                                        //Tampilin
+                                        echo ("<tr>");
+                                        echo ("<td>$id</td>");
+                                        echo ("<td>$title</td>");
+                                        echo ("<td>$category</td>");
+                                        echo ("<td>$date</td>");
+                                        echo ("<td>$summary</td>");
+                                        echo ("<td><a href='$link'>Read More...</a></td>");
+                                        echo ("</tr>");
+
+                                        // INSERT DATABASE
                                         $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
                                         $statement = $con->prepare($sql);
-                                        $statement->bind_param('sssss', $title, $category, $date, $link, $summary);
+                                        $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
                                         // Jalankan statementnya
                                         $statement->execute();
-                                        $id += 1;
+                                        $id++;
                                     }
                                 }
                             } else {
@@ -162,8 +175,7 @@
                                         $link = $news->find('div[class="title"]', 0)->find('a', 0)->href;
                                         $summary = $news->find('div[class="desc"]', 0)->innertext;
 
-                                        array_push($sample_data, $title);
-
+                                        //Preprocess
                                         $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
                                         $stemmer = $stemmerFactory->createStemmer();
                                         $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
@@ -172,80 +184,28 @@
                                         $stemedTitle = $stemmer->stem($title);
                                         $stopwordedTitle = $stopword->remove($stemedTitle);
 
+                                        //Tampilin
+                                        echo ("<tr>");
+                                        echo ("<td>$id</td>");
+                                        echo ("<td>$title</td>");
+                                        echo ("<td>$category</td>");
+                                        echo ("<td>$date</td>");
+                                        echo ("<td>$summary</td>");
+                                        echo ("<td><a href='$link'>Read More...</a></td>");
+                                        echo ("</tr>");
+
                                         //INSERT DATABASE
                                         $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
                                         $statement = $con->prepare($sql);
-                                        $statement->bind_param('sssss', $title, $category, $date, $link, $summary);
+                                        $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
                                         // Jalankan statementnya
                                         $statement->execute();
-                                        $id += 1;
+
+                                        $id++;
                                     }
                                 }
                             }
-
-
-                            $arrayTitle = [];
-                            $arrayCategory = [];
-                            $arrayDate = [];
-                            $arraySummary = [];
-                            $arrayLink = [];
-                            $arrayHasil = [];
-
-                            $sql = "SELECT * FROM news";
-                            $statement = $con->prepare($sql);
-                            $statement->execute();
-                            $result = $statement->get_result();
-                            while ($row = $result->fetch_assoc()) {
-                                array_push($arrayTitle, $row['title']);
-                                array_push($arrayCategory, $row['category']);
-                                array_push($arrayDate, $row['date']);
-                                array_push($arrayLink, $row['link']);
-                                array_push($arraySummary, $row['summary']);
-                            }
-
-                            for ($i = 0; $i < count($arrayTitle); $i++) {
-                                $arraySample = $arrayTitle;
-                                $arrayPredict = [];
-                                $selected_judul = $arrayTitle[$i];
-                                array_push($arraySample, $arrayTitle[$i]);
-
-                                $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
-                                $tf->fit($arraySample);
-                                $tf->transform($arraySample);
-                                $vocabulary = $tf->getVocabulary();
-
-                                $tfidf = new TfIdfTransformer($arraySample);
-                                $tfidf->transform($arraySample);
-
-                                $panjang = count($arraySample);
-                                array_push($arrayPredict, $arraySample[$panjang - 1]);
-                                array_pop($arraySample);
-
-                                $id = $i + 1;
-                                $category = $arrayCategory[$i];
-                                $date = $arrayDate[$i];
-                                $summary = $arraySummary[$i];
-                                $link = $arrayLink[$i];
-
-
-                                $classifier = new NaiveBayes();
-                                $classifier->train($arraySample, $arrayCategory);
-                                $result = $classifier->predict($arrayPredict);
-
-                                array_push($arrayHasil, $result[0]);
-
-                                echo ("<tr>");
-                                echo ("<td>$id</td>");
-                                echo ("<td>$selected_judul</td>");
-                                echo ("<td>$category</td>");
-                                echo ("<td>$date</td>");
-                                echo ("<td>$summary</td>");
-                                echo ("<td><a href='$link'>Read More...</a></td>");
-                                echo ("<td>" . $result[0] . "</td>");
-                                echo ("</tr>");
-                            }
                         }
-
                         ?>
                     </tbody>
                 </table>
@@ -253,7 +213,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <a class="nav-link" href="search.php">Go To Search Page</a>
+                <a class="nav-link" href="predictrumah.php">Go To Search Page</a>
             </div>
         </div>
     </div>
