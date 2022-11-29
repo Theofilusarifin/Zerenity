@@ -111,7 +111,7 @@
                                 <h2>Crawling Data</h2>
                             </div>
                             <div class="col-lg-12">
-                                <form action="indexrumah.php" id="crawl_form" method="POST">
+                                <form action="" id="crawl_form" method="POST">
                                     <div class="content">
                                         <div class="row d-flex justify-content-center no-gap" style="color:white">
                                             <div class="col-md-4 col-12">
@@ -338,7 +338,6 @@
     <script src="assets/js/tabs.js"></script>
     <script src="assets/js/popup.js"></script>
     <script src="assets/js/custom.js"></script>
-
 </body>
 
 
