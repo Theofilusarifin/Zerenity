@@ -32,6 +32,12 @@
             outline: none;
             color: #3C3F58;
         }
+
+        td,
+        tr,
+        th {
+            border: solid white 1px;
+        }
     </style>
 </head>
 
@@ -161,17 +167,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <!-- <tr>
-                                        <td scope="row" class="text-center">1</td>
-                                        <td class="text-center">Mark</td>
-                                        <td class="text-center">Otto</td>
-                                        <td class="text-center">@mdo</td>
-                                        <td class="text-center">@mdo</td>
-                                    </tr> -->
-
                                     <?php
-                                    include_once('simple_html_dom.php');
-                                    require_once __DIR__ . '/vendor/autoload.php';
 
                                     use Phpml\Classification\NaiveBayes;
                                     use Phpml\FeatureExtraction\TokenCountVectorizer;
@@ -182,7 +178,8 @@
 
                                     //Kalau button search di klik dan isi keywordnya tidak kosong
                                     if (!empty($_POST['keyword'])) {
-                                        echo ('masuk');
+                                        include_once('simple_html_dom.php');
+                                        require_once __DIR__ . '/vendor/autoload.php';
 
                                         // DATABASE
                                         $con = new mysqli("localhost", "root", "", "uas_iir");
@@ -346,87 +343,3 @@
 
 
 </html>
-<?php
-function extract_html($url)
-{
-
-    $response = array();
-
-    $response['code'] = '';
-
-    $response['message'] = '';
-
-    $response['status'] = false;
-
-    $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1';
-
-    // Some websites require referrer
-
-    $host = parse_url($url, PHP_URL_HOST);
-
-    $scheme = parse_url($url, PHP_URL_SCHEME);
-
-    $referrer = $scheme . '://' . $host;
-
-    $curl = curl_init();
-
-    curl_setopt($curl, CURLOPT_HEADER, false);
-
-    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
-
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-
-    curl_setopt($curl, CURLOPT_URL, $url);
-
-    curl_setopt($curl, CURLOPT_USERAGENT, $agent);
-
-    curl_setopt($curl, CURLOPT_REFERER, $referrer);
-
-    curl_setopt($curl, CURLOPT_COOKIESESSION, 0);
-
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-
-    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
-
-    curl_setopt($curl, CURLOPT_FAILONERROR, true);
-
-    // allow to crawl https webpages
-
-    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-
-    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-
-    // the download speed must be at least 1 byte per second
-
-    curl_setopt($curl, CURLOPT_LOW_SPEED_LIMIT, 1);
-
-    // if the download speed is below 1 byte per second for more than 30 seconds curl will give up
-
-    curl_setopt($curl, CURLOPT_LOW_SPEED_TIME, 30);
-
-    $content = curl_exec($curl);
-
-    //get the default response headers 
-    header("Access-Control-Allow-Origin: *");
-
-    $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-
-    $response['code'] = $code;
-
-    if ($content === false) {
-
-        $response['status'] = false;
-
-        $response['message'] = curl_error($curl);
-    } else {
-
-        $response['status'] = true;
-
-        $response['message'] = $content;
-    }
-
-    curl_close($curl);
-
-    return $response;
-}
-?>
