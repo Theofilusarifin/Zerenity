@@ -152,11 +152,12 @@
                             <table class="table table-borderless" style="color: white;">
                                 <thead>
                                     <tr>
-                                        <th scope="col" style="width:10%" class="text-center">Title</th>
+                                        <th scope="col" style="width:5%" class="text-center">#</th>
+                                        <th scope="col" style="width:20%" class="text-center">Title</th>
                                         <th scope="col" style="width:10%" class="text-center">Category</th>
-                                        <th scope="col" style="width:10%" class="text-center">Date</th>
-                                        <th scope="col" style="width:10%" class="text-center">Summary</th>
-                                        <th scope="col" style="width:10%" class="text-center">News Portal</th>
+                                        <th scope="col" style="width:20%" class="text-center">Date</th>
+                                        <th scope="col" style="width:30%" class="text-center">Summary</th>
+                                        <th scope="col" style="width:15%" class="text-center">Link</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -180,7 +181,8 @@
                                     // contoh linknya https://search.sindonews.com/go?type=artikel&q=mau
 
                                     //Kalau button search di klik dan isi keywordnya tidak kosong
-                                    if (isset($_POST['search']) && !empty($_POST['keyword'])) {
+                                    if (!empty($_POST['keyword'])) {
+                                        echo ('masuk');
 
                                         // DATABASE
                                         $con = new mysqli("localhost", "root", "", "uas_iir");
@@ -225,13 +227,13 @@
                                                     $stopwordedTitle = $stopword->remove($stemedTitle);
 
                                                     //Tampilin
-                                                    echo ("<tr>");
-                                                    echo ("<td>$id</td>");
-                                                    echo ("<td>$title</td>");
-                                                    echo ("<td>$category</td>");
-                                                    echo ("<td>$date</td>");
-                                                    echo ("<td>$summary</td>");
-                                                    echo ("<td><a href='$link'>Read More...</a></td>");
+                                                    echo ("<tr scope='row' class='text-center'>");
+                                                    echo ("<td class='text-center'>$id</td>");
+                                                    echo ("<td class='text-center'>$title</td>");
+                                                    echo ("<td class='text-center'>$category</td>");
+                                                    echo ("<td class='text-center'>$date</td>");
+                                                    echo ("<td class='text-center'>$summary</td>");
+                                                    echo ("<td class='text-center'><a href='$link'>Read More...</a></td>");
                                                     echo ("</tr>");
 
                                                     // INSERT DATABASE
@@ -311,64 +313,23 @@
         </div>
     </div>
 
-    <div class="container mt-5 pt-5">
-        <div class="row my-5">
-            <div class="col">
-                <form action="indexrumah.php" method="POST">
-                    <div class="row d-flex justify-content-flex-start">
-                        <p class="mb-2">Input Keyword:</p>
-                        <div class="col-8">
-                            <div class="row">
-                                <div class="col">
-                                    <input type="text" style="width:100%" name="keyword" id="keyword">
-                                </div>
-                                <div class="col">
-                                    <input type="submit" class="btn btn-sm btn-outline-primary  px-4" name="search" value="Search" id="search">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-3">
-                            <input type="radio" name="sumber" value="okezone" id="okezone" checked> Okezone
-                            <input type="radio" name="sumber" value="sindonews" id="sindonews"> Sindonews
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-3">
-                            <input type="radio" name="metode" value="euclidean" id="euclidean" checked> Euclidean
-                            <input type="radio" name="metode" value="chebyshev" id="chebyshev"> Chebyshev
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="row my-4">
-            <div class="col">
-                <table class="table" id="result">
-                    <!-- Title, Date, Category, LINK (ini tambahan) -->
-                    <thead class="table-dark table-striped">
-                        <tr role="row">
-                            <th class="text-center">News ID</th>
-                            <th class="text-center">Title</th>
-                            <th class="text-center">Category</th>
-                            <th class="text-center">Date</th>
-                            <th class="text-center">Summary</th>
-                            <th class="text-center">Link</th>
-                        </tr>
-                    </thead>
-                    <tbody>
 
-                    </tbody>
-                </table>
+    <footer>
+        <div class="container mb-5">
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>Copyright © 2022 <a href="#">Zerenity</a> All rights reserved.</p>
+                    <ul style="color:white" class="d-flex justify-content-between">
+                        <a href="" target="_blank">Hans Wirjawan</a>
+                        <a href="" target="_blank">Henri Jayanata</a>
+                        <a href="https://www.linkedin.com/in/theofilusarifin/" target="_blank">Theofilus Arifin</a>
+                        <a href="" target="_blank">Muhammad Ikhsan</a>
+                        <a href="" target="_blank">Christian Yaska</a>
+                    </ul>
+                </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col">
-                <a class="nav-link" href="predictrumah.php">Go To Search Page</a>
-            </div>
-        </div>
-    </div>
+    </footer>
 
     <!-- Scripts -->
     <!-- Bootstrap core JavaScript -->
