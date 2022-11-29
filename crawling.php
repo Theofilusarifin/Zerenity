@@ -44,7 +44,7 @@
 <body>
 
     <!-- ***** Preloader Start ***** -->
-    <div id="js-preloader" class="js-preloader">
+    <!-- <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
             <div class="dots">
@@ -53,7 +53,7 @@
                 <span></span>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- ***** Preloader End ***** -->
 
     <!-- ***** Header Area Start ***** -->
@@ -69,10 +69,10 @@
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
-                            <li><a href="index.html" class="active">Home</a></li>
-                            <li><a href="browse.html">Crawling</a></li>
-                            <li><a href="details.html">Classification</a></li>
-                            <li><a href="streams.html">Evaluation</a></li>
+                            <li><a href="index.php">Home</a></li>
+                            <li><a href="crawling.php" class="active">Crawling</a></li>
+                            <li><a href="classification.php">Classification</a></li>
+                            <li><a href="evaluation.php">Evaluation</a></li>
                             <li style="display: none;"></li>
                         </ul>
                         <a class='menu-trigger'>
@@ -90,25 +90,10 @@
         <div class="row">
             <div class="col-lg-12">
                 <div class="page-content">
-
-                    <!-- ***** Banner Start ***** -->
-                    <div class="main-banner">
-                        <div class="row">
-                            <div class="col-lg-7">
-                                <div class="header-text">
-                                    <h6></h6>
-                                    <h4><em>Let's</em> start news crawling here!</h4>
-                                    <h6>IIR is our favorite subject!</h6>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- ***** Banner End ***** -->
-
                     <div class="game-details">
                         <div class="row">
-                            <div class="col-lg-12">
-                                <h2>Crawling Data</h2>
+                            <div class="col-12">
+                                <h2 style="margin-top: 0;">Crawling Data</h2>
                             </div>
                             <div class="col-lg-12">
                                 <form action="" id="crawl_form" method="POST">
@@ -131,13 +116,12 @@
                                             </div>
                                         </div>
                                         <div class="row mt-3 d-flex justify-content-center align-items-center no-gap ">
-                                            <div class="col-8 mt-3">
+                                            <div class="col-8 pt-2">
                                                 <div class="search-input">
                                                     <input type="text" placeholder="Type Something" name="keyword" id="keyword">
-                                                    <i class="fa fa-search"></i>
                                                 </div>
                                             </div>
-                                            <div class="col-2">
+                                            <div class="col-2 mt-3">
                                                 <div class="main-border-button" style="margin: 0; padding:0;">
                                                     <a href="#" onclick="document.getElementById('crawl_form').submit()">Find</a>
                                                 </div>
@@ -153,7 +137,7 @@
                     <div class="gaming-library">
                         <div class="col-lg-12">
                             <div class="heading-section">
-                                <h4><em>News Crawling</em> Result</h4>
+                                <h4><em>Crawling</em> Result</h4>
                             </div>
                             <table class="table table-borderless" style="color: white;">
                                 <thead>
@@ -162,8 +146,7 @@
                                         <th scope="col" style="width:20%" class="text-center">Title</th>
                                         <th scope="col" style="width:10%" class="text-center">Category</th>
                                         <th scope="col" style="width:20%" class="text-center">Date</th>
-                                        <th scope="col" style="width:30%" class="text-center">Summary</th>
-                                        <th scope="col" style="width:15%" class="text-center">Link</th>
+                                        <th scope="col" style="width:15%" class="text-center">Portal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -229,14 +212,13 @@
                                                     echo ("<td class='text-center'>$title</td>");
                                                     echo ("<td class='text-center'>$category</td>");
                                                     echo ("<td class='text-center'>$date</td>");
-                                                    echo ("<td class='text-center'>$summary</td>");
-                                                    echo ("<td class='text-center'><a href='$link'>Read More...</a></td>");
+                                                    echo ("<td class='text-center'>" . $_POST['sumber'] . "</td>");
                                                     echo ("</tr>");
 
                                                     // INSERT DATABASE
-                                                    $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
+                                                    $sql = "INSERT INTO news (title, category, date, portal) VALUES (?,?,?,)";
                                                     $statement = $con->prepare($sql);
-                                                    $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
+                                                    $statement->bind_param('ssss', $stopwordedTitle, $category, $date, $_POST['sumber']);
                                                     // Jalankan statementnya
                                                     $statement->execute();
                                                     $id++;
@@ -278,19 +260,18 @@
                                                     $stopwordedTitle = $stopword->remove($stemedTitle);
 
                                                     //Tampilin
-                                                    echo ("<tr>");
-                                                    echo ("<td>$id</td>");
-                                                    echo ("<td>$title</td>");
-                                                    echo ("<td>$category</td>");
-                                                    echo ("<td>$date</td>");
-                                                    echo ("<td>$summary</td>");
-                                                    echo ("<td><a href='$link'>Read More...</a></td>");
+                                                    echo ("<tr scope='row' class='text-center'>");
+                                                    echo ("<td class='text-center'>$id</td>");
+                                                    echo ("<td class='text-center'>$title</td>");
+                                                    echo ("<td class='text-center'>$category</td>");
+                                                    echo ("<td class='text-center'>$date</td>");
+                                                    echo ("<td class='text-center'>" . $_POST['sumber'] . "</td>");
                                                     echo ("</tr>");
 
                                                     //INSERT DATABASE
-                                                    $sql = "INSERT INTO news (title, category, date, link, summary) VALUES (?,?,?,?,?)";
+                                                    $sql = "INSERT INTO news (title, category, date, portal) VALUES (?,?,?,?)";
                                                     $statement = $con->prepare($sql);
-                                                    $statement->bind_param('sssss', $stopwordedTitle, $category, $date, $link, $summary);
+                                                    $statement->bind_param('ssss', $stopwordedTitle, $category, $date, $_POST['sumber']);
                                                     // Jalankan statementnya
                                                     $statement->execute();
 
@@ -342,3 +323,88 @@
 
 
 </html>
+
+<?php
+function extract_html($url)
+{
+
+    $response = array();
+
+    $response['code'] = '';
+
+    $response['message'] = '';
+
+    $response['status'] = false;
+
+    $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1';
+
+    // Some websites require referrer
+
+    $host = parse_url($url, PHP_URL_HOST);
+
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+
+    $referrer = $scheme . '://' . $host;
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_HEADER, false);
+
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+
+    curl_setopt($curl, CURLOPT_USERAGENT, $agent);
+
+    curl_setopt($curl, CURLOPT_REFERER, $referrer);
+
+    curl_setopt($curl, CURLOPT_COOKIESESSION, 0);
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
+
+    // allow to crawl https webpages
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+    // the download speed must be at least 1 byte per second
+
+    curl_setopt($curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+
+    // if the download speed is below 1 byte per second for more than 30 seconds curl will give up
+
+    curl_setopt($curl, CURLOPT_LOW_SPEED_TIME, 30);
+
+    $content = curl_exec($curl);
+
+    //get the default response headers 
+    header("Access-Control-Allow-Origin: *");
+
+    $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+    $response['code'] = $code;
+
+    if ($content === false) {
+
+        $response['status'] = false;
+
+        $response['message'] = curl_error($curl);
+    } else {
+
+        $response['status'] = true;
+
+        $response['message'] = $content;
+    }
+
+    curl_close($curl);
+
+    return $response;
+}
+?>
