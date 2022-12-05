@@ -93,7 +93,7 @@
                     <div class="game-details">
                         <div class="row">
                             <div class="col-12">
-                                <h2 style="margin-top: 0;">Crawling Data</h2>
+                                <h2 style="margin-top: 0;">Crawling</h2>
                             </div>
                             <div class="col-lg-12">
                                 <form action="" id="crawl_form" method="POST">
@@ -152,53 +152,6 @@
                                         $keyword = $_POST['keyword'];
                                         $query_keyword = str_replace(" ", "+", $keyword);
 
-                                        // Sindonews
-                                        $url = 'https://search.sindonews.com/go?type=artikel&q=' . $query_keyword;
-                                        $result = extract_html($url);
-
-                                        if ($result['code'] == '200') {
-                                            $html = new simple_html_dom();
-                                            $html->load($result['message']);
-
-                                            $id = 1;
-                                            // Crawling Process
-                                            foreach ($html->find('div[class="news-content"]') as $news) {
-                                                $title = $news->find('a', 0)->innertext;
-                                                // wajib ada tanda ^ karena fungsinya untuk memberikan indikasi attribut yang dicari berawalan ...
-                                                $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
-                                                $date = $news->find('div[class="news-date"]', 0)->innertext;
-
-                                                //Preprocessing
-                                                $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
-                                                $stemmer = $stemmerFactory->createStemmer();
-                                                $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
-                                                $stopword = $stopwordFactory->createStopWordRemover();
-
-                                                $stemedTitle = $stemmer->stem($title);
-                                                $stopwordedTitle = $stopword->remove($stemedTitle);
-
-                                                // Display Result
-                                                echo ("<tr scope='row' class='text-center'>");
-                                                echo ("<td class='text-center'>$id</td>");
-                                                echo ("<td class='text-center'>$title</td>");
-                                                echo ("<td class='text-center'>$category</td>");
-                                                echo ("<td class='text-center'>$date</td>");
-                                                echo ("<td class='text-center'>" . 'Sindonews' . "</td>");
-                                                echo ("</tr>");
-
-                                                // Insert data into database
-                                                $sql = "INSERT INTO training (title, category, date, portal) VALUES (?,?,?,'Sindonews')";
-                                                $statement = $con->prepare($sql);
-                                                $statement->bind_param('sss', $stopwordedTitle, $category, $date);
-                                                $statement->execute();
-
-                                                $id++;
-                                                if ($id > 5) {
-                                                    break;
-                                                }
-                                            }
-                                        }
-
                                         // Okezone
                                         $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
                                         //https://search.okezone.com/searchsphinx/loaddata/article/hacker%20bjorka/0
@@ -239,6 +192,53 @@
                                                 $statement = $con->prepare($sql);
                                                 $statement->bind_param('sss', $stopwordedTitle, $category, $date);
                                                 // Jalankan statementnya
+                                                $statement->execute();
+
+                                                $id++;
+                                                if ($id > 5) {
+                                                    break;
+                                                }
+                                            }
+                                        }
+
+                                        // Sindonews
+                                        $url = 'https://search.sindonews.com/go?type=artikel&q=' . $query_keyword;
+                                        $result = extract_html($url);
+
+                                        if ($result['code'] == '200') {
+                                            $html = new simple_html_dom();
+                                            $html->load($result['message']);
+
+                                            $id = 1;
+                                            // Crawling Process
+                                            foreach ($html->find('div[class="news-content"]') as $news) {
+                                                $title = $news->find('a', 0)->innertext;
+                                                // wajib ada tanda ^ karena fungsinya untuk memberikan indikasi attribut yang dicari berawalan ...
+                                                $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
+                                                $date = $news->find('div[class="news-date"]', 0)->innertext;
+
+                                                //Preprocessing
+                                                $stemmerFactory = new \Sastrawi\Stemmer\StemmerFactory();
+                                                $stemmer = $stemmerFactory->createStemmer();
+                                                $stopwordFactory = new \Sastrawi\StopWordRemover\StopWordRemoverFactory();
+                                                $stopword = $stopwordFactory->createStopWordRemover();
+
+                                                $stemedTitle = $stemmer->stem($title);
+                                                $stopwordedTitle = $stopword->remove($stemedTitle);
+
+                                                // Display Result
+                                                echo ("<tr scope='row' class='text-center'>");
+                                                echo ("<td class='text-center'>$id</td>");
+                                                echo ("<td class='text-center'>$title</td>");
+                                                echo ("<td class='text-center'>$category</td>");
+                                                echo ("<td class='text-center'>$date</td>");
+                                                echo ("<td class='text-center'>" . 'Sindonews' . "</td>");
+                                                echo ("</tr>");
+
+                                                // Insert data into database
+                                                $sql = "INSERT INTO training (title, category, date, portal) VALUES (?,?,?,'Sindonews')";
+                                                $statement = $con->prepare($sql);
+                                                $statement->bind_param('sss', $stopwordedTitle, $category, $date);
                                                 $statement->execute();
 
                                                 $id++;

@@ -304,12 +304,12 @@
 
                                                 // Display Result in table
                                                 foreach ($arr_training as $key => $value) {
-                                                    echo "<tr>";
-                                                    echo "<td>" .  ($key + 1) . "</td>";
-                                                    echo "<td>" . $value['title'] . "</td>";
-                                                    echo "<td>" . $value['date'] . "</td>";
-                                                    echo "<td>" . $value['category'] . "</td>";
-                                                    echo "<td>" . $value['portal'] . "</td>";
+                                                    echo "<tr scope='row' class='text-center'>";
+                                                    echo "<td class='text-center'>" .  ($key + 1) . "</td>";
+                                                    echo "<td class='text-center'>" . $value['title'] . "</td>";
+                                                    echo "<td class='text-center'>" . $value['date'] . "</td>";
+                                                    echo "<td class='text-center'>" . $value['category'] . "</td>";
+                                                    echo "<td class='text-center'>" . $value['portal'] . "</td>";
                                                     echo "</tr>";
                                                 }
                                             } 

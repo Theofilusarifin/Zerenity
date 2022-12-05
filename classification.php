@@ -44,7 +44,7 @@
 <body>
 
     <!-- ***** Preloader Start ***** -->
-    <div id="js-preloader" class="js-preloader">
+    <!-- <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
             <div class="dots">
@@ -53,7 +53,7 @@
                 <span></span>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- ***** Preloader End ***** -->
 
     <!-- ***** Header Area Start ***** -->
@@ -96,7 +96,7 @@
                                 <h2 style="margin-top: 0;">Classification</h2>
                             </div>
                             <div class="col-lg-12">
-                                <form action="" id="crawl_form" method="POST">
+                                <form action="" id="classification_form" method="POST">
                                     <div class="content">
                                         <div class="row d-flex justify-content-center no-gap" style="color:white">
                                             <div class="col-md-4 col-12">
@@ -104,14 +104,6 @@
                                                 <div class="col-12 d-flex justify-content-center mt-2">
                                                     <input type="radio" name="sumber" value="okezone" id="okezone" checked class="me-2"> Okezone
                                                     <input type="radio" name="sumber" value="sindonews" id="sindonews" class="ms-4 me-2"> Sindonews
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 col-12">
-                                                <h6 class="text-center">Select Distance Method:</h6>
-
-                                                <div class="col-12 d-flex justify-content-center mt-2">
-                                                    <input type="radio" name="metode" value="euclidean" id="euclidean" checked class="me-2"> Euclidean
-                                                    <input type="radio" name="metode" value="chebyshev" id="chebyshev" class="ms-4 me-2"> Chebyshev
                                                 </div>
                                             </div>
                                         </div>
@@ -123,7 +115,7 @@
                                             </div>
                                             <div class="col-2 mt-3">
                                                 <div class="main-border-button" style="margin: 0; padding:0;">
-                                                    <a href="#" onclick="document.getElementById('crawl_form').submit()">Find</a>
+                                                    <a href="#" onclick="document.getElementById('classification_form').submit()">Find</a>
                                                 </div>
                                             </div>
                                         </div>
@@ -154,12 +146,12 @@
                                     use Phpml\FeatureExtraction\TokenCountVectorizer;
                                     use Phpml\Tokenization\WhitespaceTokenizer;
                                     use Phpml\FeatureExtraction\TfIdfTransformer;
-                                    use Phpml\Classification\KNearestNeighbors;
+                                    use Phpml\Classification\NaiveBayes;
 
                                     // Check keyword is not empty
                                     if (!empty($_POST['keyword'])) {
-                                        require_once __DIR__ . '/vendor/autoload.php';
                                         include_once('simple_html_dom.php');
+                                        require_once __DIR__ . '/vendor/autoload.php';
 
                                         // Initialize database connection
                                         $con = new mysqli("localhost", "root", "", "uas_iir");
@@ -167,7 +159,133 @@
                                             die("Failed to connect to MYSQL:" . $con->connect_errno);
                                         }
 
+                                        // Define Variable
+                                        $keyword = $_POST['keyword'];
+                                        $query_keyword = str_replace(" ", "+", $keyword);
+                                        $portal = $_POST['sumber'];
 
+                                        $arr_crawling = array();
+                                        // Okezone
+                                        if ($portal == "okezone") {
+                                            $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
+                                            $result = extract_html($url);
+
+                                            if ($result['code'] == '200') {
+                                                $html = new simple_html_dom();
+                                                $html->load($result['message']);
+
+                                                $id = 1;
+                                                // Crawling Process
+                                                foreach ($html->find('div[class="listnews"]') as $news) {
+                                                    $title = $news->find('div[class="title"]', 0)->find('a', 0)->innertext;
+                                                    $category = $news->find('div[class^="kanal"]', 0)->innertext;
+                                                    $date = $news->find('div[class="tgl"]', 0)->innertext;
+
+                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");
+                                                    $arr_crawling[] = $temp;
+
+                                                    $id++;
+                                                    if ($id > 5) {
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        // Sindonews
+                                        else if ($portal == "sindonews") {
+                                            $url = 'https://search.sindonews.com/go?type=artikel&q=' . $query_keyword;
+                                            $result = extract_html($url);
+
+                                            if ($result['code'] == '200') {
+                                                $html = new simple_html_dom();
+                                                $html->load($result['message']);
+
+                                                $id = 1;
+                                                // Crawling Process
+                                                foreach ($html->find('div[class="news-content"]') as $news) {
+                                                    $title = $news->find('a', 0)->innertext;
+                                                    $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
+                                                    $date = $news->find('div[class="news-date"]', 0)->innertext;
+
+                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");
+                                                    $arr_crawling[] = $temp;
+
+                                                    $id++;
+                                                    if ($id > 5) {
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Naive Bayes Process
+                                        $ids = 0;
+                                        foreach ($arr_crawling as $key => $value) {
+                                            // Get data from training
+                                            $sql = "SELECT * FROM training";
+                                            $res = $con->query($sql);
+
+                                            $arr_sample_title = array();
+                                            $arr_sample_category = array();
+
+                                            while ($row = $res->fetch_assoc()) {
+                                                array_push($arr_sample_title, $row['title']);
+                                                array_push($arr_sample_category, $row['category']);
+                                            }
+
+                                            $count_data = count($arr_sample_category) / 2;
+                                            array_push($arr_sample_title, $value['title']);
+
+                                            echo "<tr scope='row' class='text-center'>";
+                                            echo "<td class='text-center'>" . $value['title'] . "</td>";
+                                            echo "<td class='text-center'>" . $value['date'] . "</td>";
+                                            echo "<td class='text-center'>" . $value['category'] . "</td>";
+
+                                            $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
+                                            $tf->fit($arr_sample_title);
+                                            $tf->transform($arr_sample_title);
+                                            $tfidf = new TfIdfTransformer($arr_sample_title);
+                                            $tfidf->transform($arr_sample_title);
+
+                                            foreach ($arr_sample_title[(count($arr_sample_title) - 1)] as $key => $value) {
+                                                $new_data[] = $value;
+                                            }
+                                            array_pop($arr_sample_title);
+
+                                            // Do Naive Bayes Classification Method
+                                            $classifier = new NaiveBayes($count_data);
+                                            $classifier->train($arr_sample_title, $arr_sample_category);
+                                            $result = $classifier->predict($new_data);
+
+                                            $new_data = [];
+                                            $arr_crawling[$ids]["classification"] = $result;
+
+                                            echo "<td class='text-center'>" . $result . "</td>";
+                                            echo "</tr>";
+
+                                            $ids++;
+                                        }
+
+                                        // Get max queue first
+                                        $sql = "SELECT max(queue) AS 'max' FROM testing";
+                                        $res = $con->query($sql);
+                                        $row = $res->fetch_assoc();
+
+                                        $data = 0;
+
+                                        if ($row['max'] == null) {
+                                            $data = 1;
+                                        } else {
+                                            $data = $row['max'] + 1;
+                                        }
+
+                                        // Insert data into database
+                                        foreach ($arr_crawling as $key => $value) {
+                                            $sql = "INSERT INTO testing (title, date, original_category, system_classification, queue) VALUES (?,?,?,?,?)";
+                                            $stmt = $con->prepare($sql);
+                                            $stmt->bind_param("ssssi", $value['title'], $value['date'], $value['category'], $value['classification'], $data);
+                                            $stmt->execute();
+                                        }
                                     } else {
                                         echo "<br><h6>Please input a keyword</h6><br>";
                                     }

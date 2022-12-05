@@ -58,7 +58,7 @@
 <body>
 
     <!-- ***** Preloader Start ***** -->
-    <div id="js-preloader" class="js-preloader">
+    <!-- <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
             <div class="dots">
@@ -67,7 +67,7 @@
                 <span></span>
             </div>
         </div>
-    </div>
+    </div> -->
     <!-- ***** Preloader End ***** -->
 
     <!-- ***** Header Area Start ***** -->
@@ -114,7 +114,7 @@
                     </div>
 
                     <!-- ***** Table Result Start ***** -->
-                    <div class="gaming-library">
+                    <div class="gaming-library" style="margin-top: 0px;">
                         <div class="col-lg-12">
                             <div class="heading-section">
                                 <h4><em>Evaluation</em> Result</h4>
@@ -129,7 +129,34 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <?php
 
+                                    // Initialize database connection
+                                    $con = new mysqli("localhost", "root", "", "uas_iir");
+                                    if ($con->connect_errno) {
+                                        die("Failed to connect to MYSQL:" . $con->connect_errno);
+                                    }
+
+                                    $total_data = 0;
+                                    $correct_data = 0;
+                                    $result = $con->query("SELECT * FROM `testing` WHERE queue = (SELECT max(queue) FROM testing)");
+
+                                    while ($row = $result->fetch_assoc()) {
+                                        echo "<tr scope='row' class='text-center'>";
+                                        echo "<td class='text-center'>" . $row['title'] . "</td>";
+                                        echo "<td class='text-center'>" . $row['original_category'] . "</td>";
+                                        echo "<td class='text-center'>" . $row['system_classification'] . "</td>";
+
+                                        $total_data++;
+                                        if ($row['original_category'] == $row['system_classification']) {
+                                            $correct_data++;
+                                            echo "<td>V</td>";
+                                        } else {
+                                            echo "<td>X</td>";
+                                        }
+                                        echo "</tr>";
+                                    }
+                                    ?>
                                 </tbody>
                             </table>
                         </div>
@@ -152,8 +179,8 @@
                                     function drawChart() {
                                         var data = google.visualization.arrayToDataTable([
                                             ['Type', 'Percentage'],
-                                            ['Correct Classification', <?php echo ((100 / 200) * 100); ?>],
-                                            ['Wrong Classification', <?php echo (((300 - 100) / 300) * 100) ?>]
+                                            ['Correct Classification', <?php echo (($correct_data / $total_data) * 100); ?>],
+                                            ['Wrong Classification', <?php echo ((($total_data - $correct_data) / $total_data) * 100) ?>]
                                         ]);
 
                                         var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
