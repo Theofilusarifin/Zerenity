@@ -63,7 +63,7 @@
                 <div class="col-12">
                     <nav class="main-nav">
                         <!-- ***** Logo Start ***** -->
-                        <a href="index.html" class="logo">
+                        <a href="index.php" class="logo">
                             <img src="assets/images/logo.png" alt="">
                         </a>
                         <!-- ***** Logo End ***** -->
@@ -85,6 +85,102 @@
         </div>
     </header>
     <!-- ***** Header Area End ***** -->
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-content">
+                    <div class="game-details">
+                        <div class="row">
+                            <div class="col-12">
+                                <h2 style="margin-top: 0;">Classification</h2>
+                            </div>
+                            <div class="col-lg-12">
+                                <form action="" id="crawl_form" method="POST">
+                                    <div class="content">
+                                        <div class="row d-flex justify-content-center no-gap" style="color:white">
+                                            <div class="col-md-4 col-12">
+                                                <h6 class="text-center">Select Source:</h6>
+                                                <div class="col-12 d-flex justify-content-center mt-2">
+                                                    <input type="radio" name="sumber" value="okezone" id="okezone" checked class="me-2"> Okezone
+                                                    <input type="radio" name="sumber" value="sindonews" id="sindonews" class="ms-4 me-2"> Sindonews
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 col-12">
+                                                <h6 class="text-center">Select Distance Method:</h6>
+
+                                                <div class="col-12 d-flex justify-content-center mt-2">
+                                                    <input type="radio" name="metode" value="euclidean" id="euclidean" checked class="me-2"> Euclidean
+                                                    <input type="radio" name="metode" value="chebyshev" id="chebyshev" class="ms-4 me-2"> Chebyshev
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3 d-flex justify-content-center align-items-center no-gap ">
+                                            <div class="col-8 pt-2">
+                                                <div class="search-input">
+                                                    <input type="text" placeholder="Type Something" name="keyword" id="keyword">
+                                                </div>
+                                            </div>
+                                            <div class="col-2 mt-3">
+                                                <div class="main-border-button" style="margin: 0; padding:0;">
+                                                    <a href="#" onclick="document.getElementById('crawl_form').submit()">Find</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ***** Table Result Start ***** -->
+                    <div class="gaming-library">
+                        <div class="col-lg-12">
+                            <div class="heading-section">
+                                <h4><em>Classification</em> Result</h4>
+                            </div>
+                            <table class="table table-borderless" style="color: white;">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" style="width:30%" class="text-center">Title</th>
+                                        <th scope="col" style="width:20%" class="text-center">Date</th>
+                                        <th scope="col" style="width:25%" class="text-center">Original Category</th>
+                                        <th scope="col" style="width:25%" class="text-center">System Classification</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+
+                                    use Phpml\FeatureExtraction\TokenCountVectorizer;
+                                    use Phpml\Tokenization\WhitespaceTokenizer;
+                                    use Phpml\FeatureExtraction\TfIdfTransformer;
+                                    use Phpml\Classification\KNearestNeighbors;
+
+                                    // Check keyword is not empty
+                                    if (!empty($_POST['keyword'])) {
+                                        require_once __DIR__ . '/vendor/autoload.php';
+                                        include_once('simple_html_dom.php');
+
+                                        // Initialize database connection
+                                        $con = new mysqli("localhost", "root", "", "uas_iir");
+                                        if ($con->connect_errno) {
+                                            die("Failed to connect to MYSQL:" . $con->connect_errno);
+                                        }
+
+
+                                    } else {
+                                        echo "<br><h6>Please input a keyword</h6><br>";
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- ***** Table Result End ***** -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer>
         <div class="container mb-5">
@@ -114,6 +210,90 @@
     <script src="assets/js/popup.js"></script>
     <script src="assets/js/custom.js"></script>
 </body>
+<?php
+function extract_html($url)
+{
+
+    $response = array();
+
+    $response['code'] = '';
+
+    $response['message'] = '';
+
+    $response['status'] = false;
+
+    $agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.1) Gecko/20061204 Firefox/2.0.0.1';
+
+    // Some websites require referrer
+
+    $host = parse_url($url, PHP_URL_HOST);
+
+    $scheme = parse_url($url, PHP_URL_SCHEME);
+
+    $referrer = $scheme . '://' . $host;
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_HEADER, false);
+
+    curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+
+    curl_setopt($curl, CURLOPT_USERAGENT, $agent);
+
+    curl_setopt($curl, CURLOPT_REFERER, $referrer);
+
+    curl_setopt($curl, CURLOPT_COOKIESESSION, 0);
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 5);
+
+    curl_setopt($curl, CURLOPT_FAILONERROR, true);
+
+    // allow to crawl https webpages
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+
+    curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+
+    // the download speed must be at least 1 byte per second
+
+    curl_setopt($curl, CURLOPT_LOW_SPEED_LIMIT, 1);
+
+    // if the download speed is below 1 byte per second for more than 30 seconds curl will give up
+
+    curl_setopt($curl, CURLOPT_LOW_SPEED_TIME, 30);
+
+    $content = curl_exec($curl);
+
+    //get the default response headers 
+    // header("Access-Control-Allow-Origin: *");
+
+    $code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+    $response['code'] = $code;
+
+    if ($content === false) {
+
+        $response['status'] = false;
+
+        $response['message'] = curl_error($curl);
+    } else {
+
+        $response['status'] = true;
+
+        $response['message'] = $content;
+    }
+
+    curl_close($curl);
+
+    return $response;
+}
+?>
 
 
 </html>

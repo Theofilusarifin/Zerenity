@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="assets/css/owl.css">
     <link rel="stylesheet" href="assets/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" />
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <style>
         input[type=text] {
@@ -37,6 +38,19 @@
         tr,
         th {
             border: solid white 1px;
+        }
+
+        .main {
+            text-align: center;
+            color: #3BBA9C;
+            font-size: 20px;
+        }
+
+        #donutchart {
+            width: 700px;
+            height: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
@@ -63,7 +77,7 @@
                 <div class="col-12">
                     <nav class="main-nav">
                         <!-- ***** Logo Start ***** -->
-                        <a href="index.html" class="logo">
+                        <a href="index.php" class="logo">
                             <img src="assets/images/logo.png" alt="">
                         </a>
                         <!-- ***** Logo End ***** -->
@@ -85,6 +99,78 @@
         </div>
     </header>
     <!-- ***** Header Area End ***** -->
+
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="page-content">
+                    <div class="game-details">
+                        <div class="row">
+                            <div class="col-12">
+                                <h2 style="margin-top: 0;">Evaluation</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ***** Table Result Start ***** -->
+                    <div class="gaming-library">
+                        <div class="col-lg-12">
+                            <div class="heading-section">
+                                <h4><em>Evaluation</em> Result</h4>
+                            </div>
+                            <table class="table table-borderless" style="color: white;">
+                                <thead>
+                                    <tr>
+                                        <th scope="col" style="width:30%" class="text-center">Title</th>
+                                        <th scope="col" style="width:25%" class="text-center">Original Category</th>
+                                        <th scope="col" style="width:25%" class="text-center">System Classification</th>
+                                        <th scope="col" style="width:20%" class="text-center">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- ***** Table Result End ***** -->
+
+                    <!-- ***** Table Result Start ***** -->
+                    <div class="gaming-library">
+                        <div class="col-lg-12">
+                            <div class="heading-section">
+                                <h4><em>Accuracy</em> Result</h4>
+                            </div>
+                            <div class="main">
+                                <script type="text/javascript">
+                                    google.charts.load("current", {
+                                        packages: ["corechart"]
+                                    });
+                                    google.charts.setOnLoadCallback(drawChart);
+
+                                    function drawChart() {
+                                        var data = google.visualization.arrayToDataTable([
+                                            ['Type', 'Percentage'],
+                                            ['Correct Classification', <?php echo ((100 / 200) * 100); ?>],
+                                            ['Wrong Classification', <?php echo (((300 - 100) / 300) * 100) ?>]
+                                        ]);
+
+                                        var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+                                        chart.draw(data);
+                                    }
+                                </script>
+
+                                <div id="donutchart" style="margin-bottom: 2%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ***** Table Result End ***** -->
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <footer>
         <div class="container mb-5">

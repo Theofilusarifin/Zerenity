@@ -63,7 +63,7 @@
                 <div class="col-12">
                     <nav class="main-nav">
                         <!-- ***** Logo Start ***** -->
-                        <a href="index.html" class="logo">
+                        <a href="index.php" class="logo">
                             <img src="assets/images/logo.png" alt="">
                         </a>
                         <!-- ***** Logo End ***** -->
@@ -113,6 +113,16 @@
                             <div class="col-lg-12">
                                 <form action="" id="find_form" method="POST">
                                     <div class="content">
+                                        <div class="row d-flex justify-content-center no-gap" style="color:white">
+                                            <div class="col-md-4 col-12">
+                                                <h6 class="text-center">Select Distance Method:</h6>
+
+                                                <div class="col-12 d-flex justify-content-center mt-2">
+                                                    <input type="radio" name="metode" value="euclidean" id="euclidean" checked class="me-2"> Euclidean
+                                                    <input type="radio" name="metode" value="chebyshev" id="chebyshev" class="ms-4 me-2"> Chebyshev
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div class="row pb-2 d-flex justify-content-center align-items-center no-gap ">
                                             <div class="col-8 pt-2">
                                                 <div class="search-input">
@@ -157,147 +167,158 @@
                                     use Phpml\Tokenization\WhitespaceTokenizer;
                                     use Phpml\FeatureExtraction\TfIdfTransformer;
                                     use Phpml\Math\Distance\Euclidean;
+                                    use Phpml\Math\Distance\Chebyshev;
 
-                                    //Kalau button search di klik dan isi keywordnya tidak kosong
+                                    // Check keyword is not empty
                                     if (!empty($_POST['keyword'])) {
-                                        include_once('simple_html_dom.php');
                                         require_once __DIR__ . '/vendor/autoload.php';
 
-                                        // DATABASE
+                                        // Initialize database connection
                                         $con = new mysqli("localhost", "root", "", "uas_iir");
-                                        // Lakukan pengecekan apakah terjadi koneksi yang error?
-                                        if ($con->connect_errno) { // Kalau ada koneksi yang error
-                                            // Melakukan echo terus memberhentikan proses
+                                        if ($con->connect_errno) {
                                             die("Failed to connect to MYSQL:" . $con->connect_errno);
                                         }
 
                                         // Define Variable
-                                        $training_data = array();
-                                        $data_title = array();
+                                        $arr_training = array();
+                                        $arr_title = array();
                                         $keyword = "%" . $_POST['keyword'] . "%";
-                                        echo "<br><h6>Result for: " . $_POST['keyword'] . "</h6><br><br>";
+                                        echo "<br><h6>Result for: " . $_POST['keyword'] . "</h6>";
 
                                         // Prepare SQL to get data from database
-                                        $sql = "SELECT * FROM news WHERE title LIKE ?";
+                                        $sql = "SELECT * FROM training WHERE title LIKE ?";
                                         $stmt = $con->prepare($sql);
                                         $stmt->bind_param("s", $keyword);
                                         $stmt->execute();
                                         $res = $stmt->get_result();
 
-                                        // Mendapatkan data dari hasil query database
-                                        while ($row = $res->fetch_assoc()) {
-                                            array_push($data_title, $row['title']);
-                                            $temp = array("title" => $row['title'], "date" => $row['date'], "category" => $row['category'], "portal" => $row['portal']);
-                                            $training_data[] = $temp;
-                                        }
-
-                                        // TF IDF Process
-                                        $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
-                                        $tf->fit($data_title);
-                                        $tf->transform($data_title);
-                                        $tfidf = new TfIdfTransformer($data_title);
-                                        $tfidf->transform($data_title);
-
-                                        // Mendapatkan jumlah terms untuk dilakukannya kalkulasi euclidean Similarity dan mendapatkan jumlah dari isi array data_title setelah tfidf
-                                        $terms_amount = count($tf->getVocabulary());
-                                        $data_title_amount = count($data_title) - 1;
-
-                                        // Lakukan euclidean Similarity
-                                        $euclidean = new Euclidean($terms_amount - 1);
-                                        for (
-                                            $i = 0;
-                                            $i <= $data_title_amount;
-                                            $i++
-                                        ) {
-                                            $training_data[$i]['similarity'] = $euclidean->distance($data_title[$i], $data_title[$data_title_amount]);
-                                        }
-
-                                        // Mengurutkan hasil yang dicari berdasarkan similarity terbesar
-                                        $similarity_list = array_column($training_data, 'similarity');
-                                        array_multisort($similarity_list, SORT_DESC, $training_data);
-
-                                        // Jika tidak ada data yang ditemukan, tidak perlu melakukan query expansion
-                                        if (count($training_data) > 0) {
-                                            $expansion_data = array();
-                                            $tfidf_score_accumulation = array();
-                                            $top_k_retrieved = 0;
-
-                                            // Menentukan Nilai Top K Retrieved
-                                            if (count($training_data) < 3) {
-                                                $top_k_retrieved = count($training_data);
-                                            } else {
-                                                $top_k_retrieved = 3;
+                                        if ($res->num_rows != 0){
+                                            echo('<br><br>');
+                                            // Fetch data from database querry
+                                            while ($row = $res->fetch_assoc()) {
+                                                array_push($arr_title, $row['title']);
+                                                $temp = array("title" => $row['title'], "date" => $row['date'], "category" => $row['category'], "portal" => $row['portal']);
+                                                $arr_training[] = $temp;
                                             }
 
-                                            // Mengisi array expansion_data dengan 3 title teratas
-                                            for ($i = 0; $i < $top_k_retrieved; $i++) {
-                                                $expansion_data[] = $training_data[$i]['title'];
-                                            }
-
-                                            // TF IDF
+                                            // TF IDF Process
                                             $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
-                                            $tf->fit($expansion_data);
-                                            $tf->transform($expansion_data);
-                                            $tfidf = new TfIdfTransformer($expansion_data);
-                                            $tfidf->transform($expansion_data);
-                                            $term_list = $tf->getVocabulary();
+                                            $tf->fit($arr_title);
+                                            $tf->transform($arr_title);
+                                            $tfidf = new TfIdfTransformer($arr_title);
+                                            $tfidf->transform($arr_title);
 
-                                            // Deklarasi bahwa isi array 1D ini dengan 0 sebanyak jumlah term yang tersedia
-                                            for ($i = 0; $i < count($term_list); $i++) {
-                                                $tfidf_score_accumulation[$i] = 0;
+                                            // Get Count Terms for Distance Calculation
+                                            $terms_count = count($tf->getVocabulary());
+                                            $arr_title_count = count($arr_title) - 1;
+
+                                            // Euclidean Distance Calculation
+                                            if ($_POST['metode'] == 'euclidean') {
+                                                $euclidean = new Euclidean($terms_count - 1);
+                                                for ($i = 0; $i <= $arr_title_count; $i++) {
+                                                    $arr_training[$i]['similarity'] = $euclidean->distance($arr_title[$i], $arr_title[$arr_title_count]);
+                                                }
                                             }
-
-                                            // Lakukan akumulasi weight tiap terms nya
-                                            for ($i = 0; $i < count($expansion_data); $i++) {
-                                                for ($j = 0; $j < count($term_list); $j++) {
-                                                    $tfidf_score_accumulation[$j] += $expansion_data[$i][$j];
+                                            // Chebyshev Distance Calculation
+                                            else if ($_POST['metode'] == 'chebyshev') {
+                                                $chebyshev = new Chebyshev($terms_count - 1);
+                                                for ($i = 0; $i <= $arr_title_count; $i++) {
+                                                    $arr_training[$i]['similarity'] = $chebyshev->distance($arr_title[$i], $arr_title[$arr_title_count]);
                                                 }
                                             }
 
-                                            // Lakukan pengurutan
-                                            arsort($tfidf_score_accumulation);
+                                            // Sort similarity result using multisort
+                                            $similarity_list = array_column($arr_training, 'similarity');
+                                            array_multisort($similarity_list, SORT_DESC, $arr_training);
 
-                                            $get_max_based_index = 0;
-                                            foreach ($tfidf_score_accumulation as $key => $value) {
-                                                // Memastikan query expansion tidak sama dengan yang di search user
-                                                if (strtolower($_POST['keyword']) != strtolower($term_list[$key])) {
-                                                    $query_expansion[] = $term_list[$key];
-                                                    break;
+                                            // Query Expansion
+                                            if (count($arr_training) > 0) {
+                                                $arr_expansion = array();
+                                                $tfidf_score_total = array();
+                                                $top_k_retrieved = 0;
+
+                                                // Define top k retrieved
+                                                if (count($arr_training) < 3) {
+                                                    $top_k_retrieved = count($arr_training);
+                                                } else {
+                                                    $top_k_retrieved = 3;
                                                 }
-                                            }
 
-                                            // Menampilkan keyword tambahan berdasarkan query expansion
-                                            echo "<h6>Related keywords: </h6>";
-                                            $explode_keyword = explode(" ", $_POST['keyword']);
-                                            echo "<div class='d-flex my-4'>";
+                                                // Assign top 3 title to array arr_expansion
+                                                for ($i = 0; $i < $top_k_retrieved; $i++) {
+                                                    $arr_expansion[] = $arr_training[$i]['title'];
+                                                }
 
-                                            for ($i = 0; $i <= count($explode_keyword); $i++) {
-                                                echo "<form action='expansion_form_$i' method='post'>";
+                                                // TF IDF Process for Arr Expansion
+                                                $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
+                                                $tf->fit($arr_expansion);
+                                                $tf->transform($arr_expansion);
+                                                $tfidf = new TfIdfTransformer($arr_expansion);
+                                                $tfidf->transform($arr_expansion);
+                                                $term_list = $tf->getVocabulary();
 
-                                                $temp = $explode_keyword;
-                                                array_splice($temp, $i, 0, $query_expansion);
-                                                $new_keyword = implode(" ", $temp);
+                                                // Define temp array for terms accumulation
+                                                for ($i = 0; $i < count($term_list); $i++) {
+                                                    $tfidf_score_total[$i] = 0;
+                                                }
 
-                                                echo "<input type='hidden' name='keyword' value='" . $new_keyword . "'>";
-                                                $button = '<div class="main-border-button me-3" style="margin: 0; padding:0;">';
-                                                $button .= '<a href="" onclick="document.getElementById("expansion_form_' . $i . '").submit()">' . $new_keyword . '</a>';
-                                                $button .= '</div>';
-                                                echo $button;
-                                                echo "</form>";
-                                            }
-                                            echo "</div>";
+                                                // Calculate terms accumulation
+                                                for ($i = 0; $i < count($arr_expansion); $i++) {
+                                                    for ($j = 0; $j < count($term_list); $j++) {
+                                                        $tfidf_score_total[$j] += $arr_expansion[$i][$j];
+                                                    }
+                                                }
 
-                                            // Menampilkan hasil pada tabel secara terurut
-                                            foreach ($training_data as $key => $value ) {
-                                                echo "<tr>";
-                                                echo "<td>" .  ($key+1) . "</td>";
-                                                echo "<td>" . $value['title'] . "</td>";
-                                                echo "<td>" . $value['date'] . "</td>";
-                                                echo "<td>" . $value['category'] . "</td>";
-                                                echo "<td>" . $value['portal'] . "</td>";
-                                                echo "</tr>";
-                                            }
+                                                // Sorting
+                                                arsort($tfidf_score_total);
+
+                                                $get_max_based_index = 0;
+                                                foreach ($tfidf_score_total as $key => $value) {
+                                                    // Make sure query expansion is not the same with user search
+                                                    if (strtolower($_POST['keyword']) != strtolower($term_list[$key])) {
+                                                        $query_expansion[] = $term_list[$key];
+                                                        break;
+                                                    }
+                                                }
+
+                                                // Display Query Expansion
+                                                echo "<h6>Related keywords: </h6>";
+                                                $explode_keyword = explode(" ", $_POST['keyword']);
+                                                echo "<div class='d-flex my-4'>";
+
+                                                for ($i = 0; $i <= count($explode_keyword); $i++) {
+                                                    echo "<form action='expansion_form_$i' method='post'>";
+
+                                                    $temp = $explode_keyword;
+                                                    array_splice($temp, $i, 0, $query_expansion);
+                                                    $new_keyword = implode(" ", $temp);
+
+                                                    echo "<input type='hidden' name='keyword' value='" . $new_keyword . "'>";
+                                                    $button = '<div class="main-border-button me-3" style="margin: 0; padding:0;">';
+                                                    $button .= '<a href="" onclick="document.getElementById("expansion_form_' . $i . '").submit()">' . $new_keyword . '</a>';
+                                                    $button .= '</div>';
+                                                    echo $button;
+                                                    echo "</form>";
+                                                }
+                                                echo "</div>";
+
+                                                // Display Result in table
+                                                foreach ($arr_training as $key => $value) {
+                                                    echo "<tr>";
+                                                    echo "<td>" .  ($key + 1) . "</td>";
+                                                    echo "<td>" . $value['title'] . "</td>";
+                                                    echo "<td>" . $value['date'] . "</td>";
+                                                    echo "<td>" . $value['category'] . "</td>";
+                                                    echo "<td>" . $value['portal'] . "</td>";
+                                                    echo "</tr>";
+                                                }
+                                            } 
+                                        } else {
+                                            echo "<br><h6>There is no data that match your search in our database</h6><br>";
                                         }
+                                    }
+                                    else{
+                                        echo "<br><h6>Please input a keyword</h6><br>";
                                     }
                                     ?>
                                 </tbody>
