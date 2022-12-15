@@ -58,7 +58,7 @@
 <body>
 
     <!-- ***** Preloader Start ***** -->
-    <!-- <div id="js-preloader" class="js-preloader">
+    <div id="js-preloader" class="js-preloader">
         <div class="preloader-inner">
             <span class="dot"></span>
             <div class="dots">
@@ -67,7 +67,7 @@
                 <span></span>
             </div>
         </div>
-    </div> -->
+    </div>
     <!-- ***** Preloader End ***** -->
 
     <!-- ***** Header Area Start ***** -->
@@ -83,9 +83,9 @@
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
-                            <li><a href="index.php">Home</a></li>
+                            <li><a href="index.php" >Home</a></li>
                             <li><a href="crawling.php">Crawling</a></li>
-                            <li><a href="classification.php">Classification</a></li>
+                            <li><a href="classification.php" >Classification</a></li>
                             <li><a href="evaluation.php" class="active">Evaluation</a></li>
                             <li style="display: none;"></li>
                         </ul>

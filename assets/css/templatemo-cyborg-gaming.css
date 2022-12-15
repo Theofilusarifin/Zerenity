@@ -191,6 +191,7 @@ Global Styles
 html,
 body {
 	background: #1f2122;
+	
 	font-family: "Poppins", sans-serif;
 }
 
@@ -411,7 +412,7 @@ Header Style
 	-moz-transition: all 0.5s ease 0s;
 	-o-transition: all 0.5s ease 0s;
 	transition: all 0.5s ease 0s;
-	display: none;
+	display: block;
 }
 
 .header-area {
