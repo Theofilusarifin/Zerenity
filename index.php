@@ -68,7 +68,7 @@
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Menu Start ***** -->
-                        <ul class="nav">
+                        <ul class="nav mt-2">
                             <li><a href="index.php" class="active">Home</a></li>
                             <li><a href="crawling.php">Crawling</a></li>
                             <li><a href="classification.php">Classification</a></li>

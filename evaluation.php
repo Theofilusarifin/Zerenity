@@ -82,10 +82,10 @@
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Menu Start ***** -->
-                        <ul class="nav">
-                            <li><a href="index.php" >Home</a></li>
+                        <ul class="nav mt-2">
+                            <li><a href="index.php">Home</a></li>
                             <li><a href="crawling.php">Crawling</a></li>
-                            <li><a href="classification.php" >Classification</a></li>
+                            <li><a href="classification.php">Classification</a></li>
                             <li><a href="evaluation.php" class="active">Evaluation</a></li>
                             <li style="display: none;"></li>
                         </ul>

@@ -68,8 +68,8 @@
                         </a>
                         <!-- ***** Logo End ***** -->
                         <!-- ***** Menu Start ***** -->
-                        <ul class="nav">
-                            <li><a href="index.php" >Home</a></li>
+                        <ul class="nav mt-2">
+                            <li><a href="index.php">Home</a></li>
                             <li><a href="crawling.php" class="active">Crawling</a></li>
                             <li><a href="classification.php">Classification</a></li>
                             <li><a href="evaluation.php">Evaluation</a></li>
