@@ -1,0 +1,42 @@
+Database ada 2:
+
+1. Training
+Adalah isi data yang belum di testing, hanya akan digunakan untuk training
+Di isi dari halaman crawling, jadi pure crawling masuk ke dalam database
+
+2. testing
+system_classification: Hasil klasifikasi dari sistem
+queque: Antrian untuk klasifikasi, data akan di klasifikasi pada data ke berapa
+
+Di isi dari halaman classification
+
+
+Pages:
+Home dan evaluation hanya untuk menampilkan data dari database
+Crawling untuk menambahkan data di dalam training
+Classification untuk menambahkan data di dalam testing
+
+
+Crawling: 
+Akan terjadi 2x crawling:
+5 data dari Okezone
+5 data dari sindonews
+
+Home:
+Untuk menampilkan query expansion (related keyword) dan hasil result berdasarkan keyword yang dicari user di dalam database
+
+Classification:
+Bisa memilih antara klasifikasi dari okezone dan sindonews
+
+Que akan bertambah 1 setiap kali kita melakukan klasifikasi 
+
+Evaluation:
+Menampilkan data dari testing berdasarkan queque terbesar. Nanti akan ada pie chart yang berfungsi untuk menampilkan seberapa presentase jawaban benar 
+
+
+Step klasifikasi:
+1. Ambil dari portal news sesuai dengan keyword (5 data)
+2. Ambil data dari trainig (semua data)
+3. Melakukan klasifikasi naive bayes (di dalam foreach) dengan menggunakan sample data dari data training, dan yang di predict adalah data dari crawling
+4. Ambil max queque dari database
+5. Masukkan kedalam tabel testing dengan menggunakan nilai queque yang baru

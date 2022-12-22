@@ -149,14 +149,14 @@
                                         }
 
                                         // Keyword Preprocessed
-                                        $keyword = $_POST['keyword'];
-                                        $query_keyword = str_replace(" ", "+", $keyword);
+                                        $keyword = $_POST['keyword']; //mendapatkan keyword dari user
+                                        $query_keyword = str_replace(" ", "+", $keyword); //Mengganti keyword dari user agar dapat di query
 
                                         // Okezone
-                                        $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
+                                        $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0"; 
                                         //https://search.okezone.com/searchsphinx/loaddata/article/hacker%20bjorka/0
 
-                                        $result = extract_html($url);
+                                        $result = extract_html($url); //pemanggilan method
 
                                         if ($result['code'] == '200') {
                                             $html = new simple_html_dom();

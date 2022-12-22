@@ -137,8 +137,8 @@
                                         die("Failed to connect to MYSQL:" . $con->connect_errno);
                                     }
 
-                                    $total_data = 0;
-                                    $correct_data = 0;
+                                    $total_data = 0; //variabel penampung untuk menampung total data yang di ambil dari database
+                                    $correct_data = 0; //variabel penampung untuk total data yang ditebak benar oleh sistem
                                     $result = $con->query("SELECT * FROM `testing` WHERE queue = (SELECT max(queue) FROM testing)");
 
                                     while ($row = $result->fetch_assoc()) {
@@ -148,10 +148,10 @@
                                         echo "<td class='text-center'>" . $row['system_classification'] . "</td>";
 
                                         $total_data++;
-                                        if ($row['original_category'] == $row['system_classification']) {
+                                        if ($row['original_category'] == $row['system_classification']) { //Apabila tebakan benar
                                             $correct_data++;
                                             echo "<td>V</td>";
-                                        } else {
+                                        } else { //Apabila tebakan salah
                                             echo "<td>X</td>";
                                         }
                                         echo "</tr>";
@@ -171,6 +171,7 @@
                             </div>
                             <div class="main">
                                 <script type="text/javascript">
+                                    //Menampilkan diagram pie
                                     google.charts.load("current", {
                                         packages: ["corechart"]
                                     });

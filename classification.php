@@ -143,6 +143,7 @@
                                 <tbody>
                                     <?php
 
+                                    //Import library
                                     use Phpml\FeatureExtraction\TokenCountVectorizer;
                                     use Phpml\Tokenization\WhitespaceTokenizer;
                                     use Phpml\FeatureExtraction\TfIdfTransformer;
@@ -160,13 +161,15 @@
                                         }
 
                                         // Define Variable
-                                        $keyword = $_POST['keyword'];
-                                        $query_keyword = str_replace(" ", "+", $keyword);
-                                        $portal = $_POST['sumber'];
+                                        $keyword = $_POST['keyword']; //keyword dari user
+                                        $query_keyword = str_replace(" ", "+", $keyword); //Mengganti keyword menjadi kalimat yang lebih pas untuk melakukan query pada web crawling
+                                        $portal = $_POST['sumber']; //menentukan portal sumber nya
 
-                                        $arr_crawling = array();
+                                        $arr_crawling = array(); //Menyimpan data crawling
+                                        //Bentuk arr crawling: [[0][[title] => "samting", [category] => "samting", [classification] => "samting"]]
                                         // Okezone
                                         if ($portal == "okezone") {
+                                            //Crawling okezone
                                             $url = "https://search.okezone.com/searchsphinx/loaddata/article/" . $query_keyword . "/0";
                                             $result = extract_html($url);
 
@@ -181,11 +184,11 @@
                                                     $category = $news->find('div[class^="kanal"]', 0)->innertext;
                                                     $date = $news->find('div[class="tgl"]', 0)->innertext;
 
-                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");
-                                                    $arr_crawling[] = $temp;
+                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");  //initialize array
+                                                    $arr_crawling[] = $temp; //Menambahkan temp kedalam arr_crawling
 
                                                     $id++;
-                                                    if ($id > 5) {
+                                                    if ($id > 5) { //Untuk menyortir hanya 5 data yang di crawling
                                                         break;
                                                     }
                                                 }
@@ -207,8 +210,8 @@
                                                     $category = $news->find('div[class^="newsc channel"]', 0)->innertext;
                                                     $date = $news->find('div[class="news-date"]', 0)->innertext;
 
-                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");
-                                                    $arr_crawling[] = $temp;
+                                                    $temp = array("title" => $title, "date" => $date, "category" => $category, "classification" => "");//initialize array
+                                                    $arr_crawling[] = $temp;//Menambahkan temp kedalam arr_crawling
 
                                                     $id++;
                                                     if ($id > 5) {
@@ -219,74 +222,78 @@
                                         }
 
                                         // Naive Bayes Process
-                                        $ids = 0;
+                                        $ids = 0; //Sebagai penunjuk index untuk mengakses arr_crawling
                                         foreach ($arr_crawling as $key => $value) {
                                             // Get data from training
                                             $sql = "SELECT * FROM training";
                                             $res = $con->query($sql);
 
-                                            $arr_sample_title = array();
-                                            $arr_sample_category = array();
+                                            $arr_sample_title = array(); //Menyimpan data title dari database
+                                            $arr_sample_category = array(); //Menyimpan data kategori dari database
 
+                                            //Proses pengisian data title dan kategori kedalam array arr_sample_title dan arr_sample_category
                                             while ($row = $res->fetch_assoc()) {
-                                                array_push($arr_sample_title, $row['title']);
+                                                array_push($arr_sample_title, $row['title']); 
                                                 array_push($arr_sample_category, $row['category']);
                                             }
 
-                                            $count_data = count($arr_sample_category) / 2;
-                                            array_push($arr_sample_title, $value['title']);
+                                            $count_data = count($arr_sample_category) / 2; //mendapatkan total data
+                                            array_push($arr_sample_title, $value['title']); //menempatkan title dari data crawling pada index terakhir untuk perhitungan naive bayes
 
+                                            //Pembuatan table
                                             echo "<tr scope='row' class='text-center'>";
                                             echo "<td class='text-center'>" . $value['title'] . "</td>";
                                             echo "<td class='text-center'>" . $value['date'] . "</td>";
                                             echo "<td class='text-center'>" . $value['category'] . "</td>";
 
+                                            //Perhitungan tf-idf dari array title
                                             $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
                                             $tf->fit($arr_sample_title);
                                             $tf->transform($arr_sample_title);
                                             $tfidf = new TfIdfTransformer($arr_sample_title);
                                             $tfidf->transform($arr_sample_title);
 
-                                            foreach ($arr_sample_title[(count($arr_sample_title) - 1)] as $key => $value) {
-                                                $new_data[] = $value;
+                                            foreach ($arr_sample_title[(count($arr_sample_title) - 1)] as $key => $value) { //Untuk mengambil array dari title hasil dari crawling
+                                                $new_data[] = $value; //Menambahkan title yang sudah di tf idf kedalam variabel new_data
                                             }
-                                            array_pop($arr_sample_title);
+                                            array_pop($arr_sample_title); //Menghapus data crawling dari sample title
 
                                             // Do Naive Bayes Classification Method
                                             $classifier = new NaiveBayes($count_data);
-                                            $classifier->train($arr_sample_title, $arr_sample_category);
-                                            $result = $classifier->predict($new_data);
+                                            $classifier->train($arr_sample_title, $arr_sample_category); //melakukan training
+                                            $result = $classifier->predict($new_data); //Melakukan prediksi terhadap data crawling an pada new_data
 
-                                            $new_data = [];
-                                            $arr_crawling[$ids]["classification"] = $result;
+                                            $new_data = []; //Mengosongkan variabel new_data
+                                            $arr_crawling[$ids]["classification"] = $result; //Menambahkan hasil prediksi naive bayes kedalam array arr_crawling bagian classification
 
+                                            //Pembuatan tabel
                                             echo "<td class='text-center'>" . $result . "</td>";
                                             echo "</tr>";
 
-                                            $ids++;
+                                            $ids++; //Update index
                                         }
 
                                         // Get max queue first
-                                        $sql = "SELECT max(queue) AS 'max' FROM testing";
+                                        $sql = "SELECT max(queue) AS 'max' FROM testing"; //Max queque agar data yang terambil adalah data yang barusan user klasifikasikan
                                         $res = $con->query($sql);
                                         $row = $res->fetch_assoc();
 
-                                        $data = 0;
+                                        $data = 0; //Variabel penampung untuk melihat berapa nilai dari queque terbesar
 
-                                        if ($row['max'] == null) {
+                                        if ($row['max'] == null) { //Apabila belum ada queque, maka mulai dari 1
                                             $data = 1;
-                                        } else {
+                                        } else { //Apabila sudah ada queque maka queque sebelumnya ditambah 1
                                             $data = $row['max'] + 1;
                                         }
 
                                         // Insert data into database
-                                        foreach ($arr_crawling as $key => $value) {
-                                            $sql = "INSERT INTO testing (title, date, original_category, system_classification, queue) VALUES (?,?,?,?,?)";
+                                        foreach ($arr_crawling as $key => $value) { //Melakukan loop terhadap setiap item pada arr_crawling
+                                            $sql = "INSERT INTO testing (title, date, original_category, system_classification, queue) VALUES (?,?,?,?,?)"; //melakukan insert kedalam testing
                                             $stmt = $con->prepare($sql);
                                             $stmt->bind_param("ssssi", $value['title'], $value['date'], $value['category'], $value['classification'], $data);
                                             $stmt->execute();
                                         }
-                                    } else {
+                                    } else { //Apabila user tidak menginputkan keyword
                                         echo "<br><h6>Please input a keyword</h6><br>";
                                     }
                                     ?>
