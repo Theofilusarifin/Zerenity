@@ -203,6 +203,9 @@
                                                 //Shape arr_training: [['title' -> 'samting1', 'date' -> '2002/10/15', 'category' -> 'samting1', 'portal' -> 'samting1'], ['title' -> 'samting2', 'date' -> '2002/10/15', 'category' -> 'samting2', 'portal' -> 'samting2']....]
                                                 //Access arr_training: co: arr_training[0]['title'] = samting1
                                             }
+                                            // Push keyword kedalam arr_title utk di TF IDF
+                                            
+                                            array_push($arr_title, $_POST['keyword']); //memasukkan data di dalam array title
 
                                             // TF IDF Process
                                             $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
@@ -210,11 +213,11 @@
                                             $tf->transform($arr_title);
                                             $tfidf = new TfIdfTransformer($arr_title);
                                             $tfidf->transform($arr_title);
-
+                                            
                                             // Get Count Terms for Distance Calculation
                                             $terms_count = count($tf->getVocabulary());
                                             $arr_title_count = count($arr_title) - 1;
-
+                                            
                                             // Euclidean Distance Calculation
                                             if ($_POST['metode'] == 'euclidean') {
                                                 $euclidean = new Euclidean($terms_count - 1); //Membuat objek euclidean
@@ -229,9 +232,10 @@
                                                     $arr_training[$i]['similarity'] = $chebyshev->distance($arr_title[$i], $arr_title[$arr_title_count]);//push distance simmiliarity
                                                 }
                                             }
-
+                                            
                                             // Sort similarity result using multisort
                                             $similarity_list = array_column($arr_training, 'similarity'); //Mengambil kolom dari arr_training bagian similary
+                                            
                                             array_multisort($similarity_list, SORT_DESC, $arr_training);
 
                                             // Query Expansion
@@ -244,14 +248,13 @@
                                                 if (count($arr_training) < 3) {
                                                     $top_k_retrieved = count($arr_training); //Mengambil total k dari jumlah item di arr_training
                                                 } else {
-                                                    $top_k_retrieved = 3; //Minimal k adalah 3
+                                                    $top_k_retrieved = 3; //Maximum k adalah 3
                                                 }
 
                                                 // Assign top 3 title to array arr_expansion
                                                 for ($i = 0; $i < $top_k_retrieved; $i++) { //Top k retrieved berfungsi untuk mendetailkan berapa total data yang akan diambil dari training data
                                                     $arr_expansion[] = $arr_training[$i]['title']; //Masukkan 3 title terbaik kedalam array arr_expansion
                                                 }
-
                                                 // TF IDF Process for Arr Expansion
                                                 $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
                                                 $tf->fit($arr_expansion);
@@ -259,23 +262,21 @@
                                                 $tfidf = new TfIdfTransformer($arr_expansion);
                                                 $tfidf->transform($arr_expansion); //Untuk mengubah setiap kata yang ada di dalam arr expansion kedalam tfidf
                                                 $term_list = $tf->getVocabulary(); //Untuk memasukkan tiap kata dari title arr_expansion kedalam array term_list
-
+                                                
                                                 // Define temp array for terms accumulation
                                                 for ($i = 0; $i < count($term_list); $i++) {
                                                     $tfidf_score_total[$i] = 0; //Untuk mengisi data arr ini dengan nilai similiaritas 0 dari tiap kata dari array term_list (temp value: 0)
                                                 }
-
+                                                
                                                 // Calculate terms accumulation
                                                 for ($i = 0; $i < count($arr_expansion); $i++) { //Looping index dari arr_expansion
                                                     for ($j = 0; $j < count($term_list); $j++) { //Looping index dari score total dan index inti dari arr expansion
                                                         $tfidf_score_total[$j] += $arr_expansion[$i][$j]; //Untuk menambahkan nilai similiaritas dari setiap index (kata) dari array score_total menggunakan score dari array arr_expansion yang sudah di tfidf
                                                     }
                                                 }
-
                                                 // Sorting
                                                 arsort($tfidf_score_total); //Mengurutkan value dari array score_total dari yang paling besar
 
-                                                $get_max_based_index = 0;
                                                 foreach ($tfidf_score_total as $key => $value) {
                                                     // Make sure query expansion is not the same with user search
                                                     if (strtolower($_POST['keyword']) != strtolower($term_list[$key])) { //Untuk mengecek apakah keyword yang di input user sama dengan array vocabulary
@@ -304,6 +305,9 @@
                                                     echo "</form>";
                                                 }
                                                 echo "</div>";
+
+                                                // Remove Keyword from arr_training
+                                                array_pop($arr_training);
 
                                                 // Display Result in table
                                                 foreach ($arr_training as $key => $value) { 
