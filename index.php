@@ -291,7 +291,7 @@
                                                 echo "<div class='d-flex my-4'>";
 
                                                 for ($i = 0; $i <= count($explode_keyword); $i++) {
-                                                    echo "<form action='expansion_form_$i' method='post'>"; //membuat form untuk setiap kata-kata yang berhasil di 'query expansion'
+                                                    echo "<form action='' id='expansion_form_$i' method='post'>"; //membuat form untuk setiap kata-kata yang berhasil di 'query expansion'
 
                                                     $temp = $explode_keyword;
                                                     array_splice($temp, $i, 0, $query_expansion); //Untuk membuat sebuah array dari potongan array query_expansion
