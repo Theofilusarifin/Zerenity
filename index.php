@@ -288,8 +288,8 @@
                                         echo '<tr>';
                                         echo '<th scope="col" style="width:5%" class="text-center"></th>';
                                         echo '<th scope="col" style="width:35%" class="text-center">Title</th>';
-                                        echo '<th scope="col" style="width:20%" class="text-center">Category</th>';
                                         echo '<th scope="col" style="width:20%" class="text-center">Date</th>';
+                                        echo '<th scope="col" style="width:20%" class="text-center">Category</th>';
                                         echo '<th scope="col" style="width:20%" class="text-center">Portal</th>';
                                         echo '</tr>';
                                         echo '</thead>';
